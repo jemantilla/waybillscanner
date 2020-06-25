@@ -1,0 +1,25 @@
+.scanner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .scanner-card {
+    width: 95%;
+    .scanned-input {
+      border: 1px solid var(--ion-color-primary);
+      border-radius: 5px;
+    }
+  }
+
+  .scanner-scan-button {
+    width: 100%;
+  }
+
+  .scanner-scanned-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 30px;
+    width: 100%;
+  }
+}

@@ -1,0 +1,202 @@
+@import "./shared.scss";
+
+* {
+  letter-spacing: -0.2px !important;
+}
+
+//TEXT STYLES
+.wc-huge {
+  font-size: $wsHugeFontSize !important;
+  font-weight: $wsHugeFontWeight !important;
+  color: var(--ion-color-dark) !important;
+  line-height: $wsHugeLineHeight !important;
+
+  &.white {
+    color: var(--ion-color-white) !important;
+  }
+}
+
+.wc-extra-huge {
+  font-size: $wsExtraHugeFontSize !important;
+  font-weight: $wsExtraHugeFontWeight !important;
+  color: var(--ion-color-dark) !important;
+
+  &.white {
+    color: var(--ion-color-white) !important;
+  }
+}
+
+.wc-h1 {
+  font-size: $wsH1FontSize !important;
+  font-weight: $wsH1FontWeight !important;
+  color: var(--ion-color-dark) !important;
+  line-height: $wsH1LineHeight !important;
+
+  &.white {
+    color: var(--ion-color-white) !important;
+  }
+  &.blue {
+    color: var(--ion-color-tertiary) !important;
+  }
+
+  &.light-weight {
+    font-weight: $wsH1LightFontWeight !important;
+  }
+}
+
+.wc-h2 {
+  font-size: $wsH2FontSize !important;
+  font-weight: $wsH2FontWeight !important;
+  color: var(--ion-color-dark) !important;
+  line-height: $wsH2LineHeight !important;
+
+  &.white {
+    color: var(--ion-color-white) !important;
+  }
+}
+
+.wc-h3 {
+  font-size: $wsH3FontSize;
+  font-weight: $wsH3FontWeight !important;
+  color: var(--ion-color-dark) !important;
+  line-height: $wsH3LineHeight !important;
+
+  &.white {
+    color: var(--ion-color-white) !important;
+  }
+  &.blue {
+    color: var(--ion-color-tertiary) !important;
+  }
+  &.bold {
+    font-weight: $wsH3FontWeightBold !important;
+  }
+}
+
+.wc-h4 {
+  font-size: $wsH4FontSize !important;
+  font-weight: $wsH4FontWeight !important;
+  color: var(--ion-color-dark) !important;
+  line-height: $wsH4LineHeight !important;
+
+  &.white {
+    color: var(--ion-color-white) !important;
+  }
+  &.blue {
+    color: var(--ion-color-tertiary) !important;
+  }
+  &.light {
+    color: var(--ion-color-light) !important;
+  }
+  &.bold {
+    font-weight: $wsH4FontWeightBold !important;
+  }
+}
+
+.wc-h5 {
+  font-size: $wsH5FontSize !important;
+  font-weight: $wsH5FontWeight !important;
+  color: var(--ion-color-dark) !important;
+  line-height: $wsH5LineHeight !important;
+
+  &.white {
+    color: var(--ion-color-white) !important;
+  }
+
+  &.light {
+    color: var(--ion-color-light) !important;
+  }
+
+  &.bold {
+    font-weight: $wsH5BoldFontWeight !important;
+  }
+}
+
+.wc-h6 {
+  font-size: $wsH6FontSize !important;
+  font-weight: $wsH6FontWeight !important;
+  color: var(--ion-color-light) !important;
+  line-height: $wsH6LineHeight !important;
+  &.blue {
+    color: var(--ion-color-tertiary) !important;
+  }
+  &.small {
+    font-size: $wsH6SmallFontSize !important;
+  }
+  &.xsmall {
+    font-size: $wsH6XSmallFontSize !important;
+  }
+  &.white {
+    color: var(--ion-color-white) !important;
+  }
+
+  &.dark {
+    color: var(--ion-color-dark) !important;
+  }
+
+  &.medium-dark {
+    color: var(--ion-color-medium-dark) !important;
+  }
+
+  &.bold {
+    font-weight: $wsH6BoldFontWeight !important;
+  }
+}
+
+.wc-body {
+  font-size: $wsBodyFontSize !important;
+  font-weight: $wsBodyFontWeight !important;
+  color: var(--ion-color-dark) !important;
+  --color: var(--ion-color-dark) !important;
+  line-height: $wsBodyLineHeight !important;
+
+  &.white {
+    color: var(--ion-color-white) !important;
+    --color: var(--ion-color-white) !important;
+  }
+  &.light {
+    color: var(--ion-color-light) !important;
+    --color: var(--ion-color-light) !important;
+  }
+  &.dark {
+    color: var(--ion-color-dark) !important;
+    --color: var(--ion-color-dark) !important;
+  }
+  &.danger {
+    color: var(--ion-color-danger) !important;
+    --color: var(--ion-color-danger) !important;
+  }
+  &.red {
+    color: red !important;
+    --color: red !important;
+  }
+  &.bold {
+    font-weight: $wsBodyBoldFontWeight !important;
+  }
+}
+
+.wc-paragraph {
+  font-size: $wsParagraphFontSize !important;
+  font-weight: $wsParagraphFontWeight !important;
+  color: var(--ion-color-dark) !important;
+  line-height: $wsParagraphLineHeight !important;
+
+  &.white {
+    color: var(--ion-color-secondary) !important;
+  }
+  &.blue {
+    color: var(--ion-color-tertiary) !important;
+  }
+  &.primary {
+    color: var(--ion-color-primary) !important;
+  }
+
+  &.danger {
+    color: var(--ion-color-danger) !important;
+  }
+  &.medium {
+    font-weight: $wsParagraphFontWeightMedium !important;
+  }
+  &.bold {
+    font-weight: $wsParagraphFontWeightBold !important;
+  }
+}
