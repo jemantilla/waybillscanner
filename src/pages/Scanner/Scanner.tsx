@@ -1,5 +1,5 @@
 import * as _ from "lodash";
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 
 import "./Scanner.scss";
 import {
@@ -19,6 +19,7 @@ import BarcodeScannerComponent from "../../components/BarcodeScannerComponent/Ba
 export const Scanner = () => {
   const [scannedWaybill, setScannedWaybill] = useState([] as string[]);
   const [currentReading, setCurrentReading] = useState("");
+  const scannedInputRef: React.RefObject<HTMLIonInputElement> = useRef(null);
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -68,6 +69,7 @@ export const Scanner = () => {
               <IonInput
                 className="scanned-input ion-margin-top"
                 value={currentReading}
+                ref={scannedInputRef}
                 onIonChange={(event) => {
                   setCurrentReading(event.detail.value || "");
                 }}
@@ -82,6 +84,9 @@ export const Scanner = () => {
             className="scanner-scan-button ion-margin-top"
             onClick={() => {
               onScan(currentReading);
+              if (!_.isEmpty(scannedInputRef.current)) {
+                scannedInputRef.current!.setFocus();
+              }
             }}
           >
             Scan
