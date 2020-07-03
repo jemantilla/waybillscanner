@@ -1,7 +1,11 @@
+import * as _ from "lodash";
 import * as React from "react";
-import { Route, RouteComponentProps } from "react-router-dom";
+
+import * as routes from "../constants/routes";
+import { Route, RouteComponentProps, Redirect } from "react-router-dom";
 
 import { AuthUser } from "../interface";
+import { isMobile } from "../functions/common";
 
 interface UnauthenticatedRouteProps {
   component: any;
@@ -25,7 +29,13 @@ export const UnauthenticatedRoute = (props: UnauthenticatedRouteProps) => {
 const getRender = (authUser: AuthUser, path: string, props: any, C: any) => {
   // const authUser = RouteRef.state.authUser as AuthUser;
   // console.log("GOT AUTH USER", authUser);
-
+  if (!_.isEmpty(authUser)) {
+    return isMobile() ? (
+      <Redirect to={routes.SCANNER} />
+    ) : (
+      <Redirect to={routes.ORDER_PAGE} />
+    );
+  }
   // if (!_.isEmpty(authUser)) {
   //   // if (authUser.role) //todo: check role here
   //   if (

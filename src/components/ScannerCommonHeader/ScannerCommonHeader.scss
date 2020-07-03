@@ -1,0 +1,24 @@
+.home-header-container {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+
+  .home-header-logo {
+    display: flex;
+    max-height: 73px;
+    max-width: 200px;
+    align-items: center;
+  }
+  .home-header-settings-button {
+    align-self: center;
+  }
+  .app-version {
+    font-size: 10px;
+  }
+  .version-container {
+    position: absolute;
+    align-self: flex-end;
+    left: 225px;
+    padding-bottom: 12px;
+  }
+}

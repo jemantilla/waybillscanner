@@ -1,6 +1,8 @@
+import * as _ from "lodash";
 import * as React from "react";
-import { Route, RouteComponentProps } from "react-router-dom";
+import { Route, RouteComponentProps, Redirect } from "react-router-dom";
 
+import * as routes from "../constants/routes";
 import { AuthUser } from "../interface";
 
 interface AuthenticatedRouteProps {
@@ -23,6 +25,9 @@ export const AuthenticatedRoute = (props: AuthenticatedRouteProps) => {
 };
 
 const getRender = (authUser: AuthUser, path: string, props: any, C: any) => {
+  if (_.isEmpty(authUser)) {
+    return <Redirect to={routes.HOME} />;
+  }
   // if (_.isEmpty(authUser)) {
   //   return <Redirect to={routes.LOGIN_OPTIONS} />;
   // } else {

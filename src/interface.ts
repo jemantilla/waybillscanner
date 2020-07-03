@@ -7,3 +7,6 @@ export interface AuthUser {
 export interface WSProps extends RouteComponentProps {
   authUser: AuthUser;
 }
+
+export type Provider = 1 | 2;
+export type WaybillStatus = 1 | 2 | 3;

@@ -5,10 +5,17 @@
 
   .scanner-card {
     width: 95%;
-    .scanned-input {
-      border: 1px solid var(--ion-color-primary);
-      border-radius: 5px;
+    .scanner-grid {
+      width: 100%;
+      .scanned-input {
+        border: 1px solid var(--ion-color-primary);
+        border-radius: 5px;
+      }
     }
+  }
+
+  .scanner-card-scanned-waybill {
+    width: 95%;
   }
 
   .scanner-scan-button {

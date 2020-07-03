@@ -11,6 +11,10 @@ import { AuthUser } from "../interface";
 import { LOCAL_STORAGE } from "../config";
 import { AuthenticatedRoute } from "./AuthenticatedRoute";
 import { Scanner } from "../pages/Scanner/Scanner";
+import { UnauthenticatedRoute } from "./UnauthenticatedRoute";
+import Home from "../pages/Home/Home";
+import { ORDERS } from "../constants/dbCollections";
+import Orders from "../pages/Orders/Orders";
 
 class RouterComponent extends React.Component<any, any> {
   state = {
@@ -89,10 +93,22 @@ class RouterComponent extends React.Component<any, any> {
               exact={true}
               authUser={authUser}
             />
+            <AuthenticatedRoute
+              path={routes.ORDER_PAGE}
+              component={Orders}
+              exact={true}
+              authUser={authUser}
+            />
+            <UnauthenticatedRoute
+              path={routes.HOME}
+              component={Home}
+              exact={true}
+              authUser={authUser}
+            />
             <Route
               exact
               path="/"
-              render={() => <Redirect to={routes.SCANNER} />}
+              render={() => <Redirect to={routes.HOME} />}
             />
           </IonRouterOutlet>
         )}

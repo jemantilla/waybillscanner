@@ -1,0 +1,36 @@
+.home-header-container {
+  display: flex;
+}
+
+.sign-in-container {
+  width: 50%;
+  max-width: 600px;
+  margin: 50px auto;
+
+  &.mobile {
+    width: 100%;
+  }
+
+  .login-button {
+    width: 100%;
+  }
+
+  .sign-in-user-input-item {
+    .password-visibility {
+      position: absolute;
+      right: 0;
+    }
+  }
+
+  .forgot-password {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+
+    .forgot-password-spiel {
+      vertical-align: middle;
+      padding-right: 5px;
+    }
+  }
+}
