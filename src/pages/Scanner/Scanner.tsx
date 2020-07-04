@@ -43,11 +43,6 @@ export const Scanner = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const handleScan = (data: any) => {
-    console.log("SCANNING???", data);
-    setCurrentReading(data);
-  };
-
   const onScan = (scannedItem: string) => {
     const clonedScannedWayBill = _.cloneDeep(scannedWaybill);
     const existingOrder = _.find(existingOrders, (order) => {

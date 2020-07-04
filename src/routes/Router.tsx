@@ -1,4 +1,3 @@
-import * as _ from "lodash";
 import * as React from "react";
 import { IonReactRouter } from "@ionic/react-router";
 import { Route, Redirect } from "react-router-dom";
@@ -6,15 +5,14 @@ import { IonRouterOutlet, IonLoading } from "@ionic/react";
 
 import * as capacitorStorage from "../functions/localStorageCapacitor";
 import * as routes from "../constants/routes";
+import Home from "../pages/Home/Home";
+import OrdersPage from "../pages/Orders/Orders";
 import { auth } from "../firebase";
 import { AuthUser } from "../interface";
-import { LOCAL_STORAGE } from "../config";
 import { AuthenticatedRoute } from "./AuthenticatedRoute";
 import { Scanner } from "../pages/Scanner/Scanner";
 import { UnauthenticatedRoute } from "./UnauthenticatedRoute";
-import Home from "../pages/Home/Home";
-import { ORDERS } from "../constants/dbCollections";
-import OrdersPage from "../pages/Orders/Orders";
+import { LOCAL_STORAGE } from "../config";
 
 class RouterComponent extends React.Component<any, any> {
   state = {

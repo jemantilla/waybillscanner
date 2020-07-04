@@ -2,10 +2,10 @@ import moment from "moment";
 import * as _ from "lodash";
 
 import { firestore } from "../firebase";
-import { getServerTimestamp } from "../functions/common";
-import { Orders } from "../models";
+import { getServerTimestamp, daysSinceDate } from "../functions/common";
+import { Orders, ClearDB } from "../models";
 import { Provider, WaybillStatus } from "../interface";
-import { ORDERS } from "../constants/dbCollections";
+import { ORDERS, CLEAR_DB } from "../constants/dbCollections";
 import { WAYBILL_STATUS } from "../constants/config";
 
 export const submitScannedWaybill = async (
@@ -98,5 +98,37 @@ export const getOrdersWithDate = async (
   } catch (e) {
     console.log("ERROR IN GETTING ORDERS WITH DATE");
     callback([]);
+  }
+};
+
+export const shouldClearDatabase = async () => {
+  const result = await firestore.collection(CLEAR_DB).get();
+  if (!result.empty) {
+    const clearDBInfo = result.docs[0].data() as ClearDB;
+    if (daysSinceDate(clearDBInfo.lastClearDate.toDate()) >= 180) {
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+    return true;
+  }
+};
+
+export const clearOrders = async () => {
+  const orders = await firestore.collection(ORDERS).get();
+  if (!orders.empty) {
+    await Promise.all(orders.docs.map((order) => order.ref.delete()));
+  }
+
+  const latestClear = await firestore.collection(CLEAR_DB).get();
+  if (!latestClear.empty) {
+    await latestClear.docs[0].ref.update({
+      lastClearDate: getServerTimestamp(),
+    });
+  } else {
+    await firestore.collection(CLEAR_DB).add({
+      lastClearDate: getServerTimestamp(),
+    });
   }
 };

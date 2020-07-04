@@ -7,7 +7,6 @@ import {
   IonItem,
   IonCard,
   IonCardHeader,
-  IonCardTitle,
   IonCardContent,
   IonInput,
   IonButton,
@@ -26,13 +25,14 @@ import { downloadOutline } from "ionicons/icons";
 
 import "./Orders.scss";
 import * as services from "../../services";
+import { download } from "../../functions/common";
 import { AddOrderDialog } from "../../components/AddOrderDialog/AddOrderDialog";
+import { ScannerCalendar } from "../../components/ScannerCalendar/ScannerCalendar";
+import { ScannerDialog } from "../../components/ScannerDialog/ScannerDialog";
 import { ScannerCommonHeader } from "../../components/ScannerCommonHeader/ScannerCommonHeader";
 import { Orders, OrderPrintDetails } from "../../models";
 import { MSGS_COMMON } from "../../constants/messages";
 import { SCOLORS, PROVIDER, WAYBILL_STATUS } from "../../constants/config";
-import { download } from "../../functions/common";
-import { ScannerCalendar } from "../../components/ScannerCalendar/ScannerCalendar";
 
 class OrdersPage extends React.Component<{}> {
   state = {
@@ -51,6 +51,8 @@ class OrdersPage extends React.Component<{}> {
     isShopeeCancelledOrdersSelected: false,
     isShopeeReturnedOrdersSelected: false,
     isShopeeRelesedOrdersSelected: false,
+
+    isClearDatabaseOpen: false,
     addOrderDialogOpen: false,
     success: "",
     error: "",
@@ -59,6 +61,39 @@ class OrdersPage extends React.Component<{}> {
   componentDidMount = () => {
     this.getLazadaOrders();
     this.getShopeeOrders();
+
+    this.checkIfShouldClearDB();
+  };
+
+  checkIfShouldClearDB = async () => {
+    try {
+      const shouldClearDB = await services.shouldClearDatabase();
+      if (shouldClearDB) {
+        this.setState({
+          isClearDatabaseOpen: true,
+        });
+      }
+    } catch (e) {
+      this.setState({
+        error: e,
+      });
+    }
+  };
+
+  clearDatabase = async () => {
+    this.setState({
+      isLoading: true,
+    });
+    try {
+      await services.clearOrders();
+      this.setState({
+        isLoading: false,
+      });
+    } catch (e) {
+      this.setState({
+        isLoading: false,
+      });
+    }
   };
 
   getLazadaOrders = () => {
@@ -282,6 +317,7 @@ class OrdersPage extends React.Component<{}> {
       isShopeeReturnedOrdersSelected,
       isShopeeRelesedOrdersSelected,
       addOrderDialogOpen,
+      isClearDatabaseOpen,
       isLoading,
       success,
       error,
@@ -589,6 +625,28 @@ class OrdersPage extends React.Component<{}> {
           onDidDismiss={() => {
             this.setState({
               addOrderDialogOpen: false,
+            });
+          }}
+        />
+
+        <ScannerDialog
+          isOpen={isClearDatabaseOpen}
+          title="6 months has gone by"
+          message="Clear database will commence now. Please approve."
+          onDidDismiss={() => {
+            this.setState({
+              isClearDatabaseOpen: false,
+            });
+          }}
+          onApprove={() => {
+            this.setState({
+              isClearDatabaseOpen: false,
+            });
+            this.clearDatabase();
+          }}
+          onDecline={() => {
+            this.setState({
+              isClearDatabaseOpen: false,
             });
           }}
         />

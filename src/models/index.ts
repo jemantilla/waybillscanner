@@ -13,3 +13,7 @@ export interface OrderPrintDetails {
   Status: string;
   "Date Added": string;
 }
+
+export interface ClearDB {
+  lastClearDate: firebase.firestore.Timestamp;
+}
