@@ -61,6 +61,7 @@ export const ScannerCommonHeader: React.FunctionComponent<{
             {showSignOut && (
               <>
                 <IonPopover
+                  cssClass="header-popover"
                   showBackdrop={false}
                   isOpen={showPopover.open}
                   event={showPopover.event}
@@ -79,7 +80,7 @@ export const ScannerCommonHeader: React.FunctionComponent<{
                       Reset Password
                     </IonButton>
                   </div>
-                  <div>
+                  <div className="logout-button">
                     <IonButton
                       fill="clear"
                       className="ion-no-padding"

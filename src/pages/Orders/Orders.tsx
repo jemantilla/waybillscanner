@@ -1,4 +1,6 @@
 import * as _ from "lodash";
+import moment from "moment";
+import React from "react";
 import {
   IonContent,
   IonPage,
@@ -18,26 +20,38 @@ import {
   IonCol,
   IonLabel,
   IonSpinner,
+  IonCheckbox,
 } from "@ionic/react";
-import React from "react";
-import { eye, eyeOff } from "ionicons/icons";
+import { downloadOutline } from "ionicons/icons";
 
 import "./Orders.scss";
 import * as services from "../../services";
-import { SCOLORS, PROVIDER } from "../../constants/config";
-import { MSGS_SIGNUP, MSGS_COMMON } from "../../constants/messages";
+import { AddOrderDialog } from "../../components/AddOrderDialog/AddOrderDialog";
 import { ScannerCommonHeader } from "../../components/ScannerCommonHeader/ScannerCommonHeader";
-import { isMobile } from "../../functions/common";
-import { Orders } from "../../models";
+import { Orders, OrderPrintDetails } from "../../models";
+import { MSGS_COMMON } from "../../constants/messages";
+import { SCOLORS, PROVIDER, WAYBILL_STATUS } from "../../constants/config";
+import { download } from "../../functions/common";
+import { ScannerCalendar } from "../../components/ScannerCalendar/ScannerCalendar";
 
 class OrdersPage extends React.Component<{}> {
   state = {
-    emailAddress: "",
-    password: "",
-    passwordVisibility: false,
+    calendarAnchor: null as Event | undefined | null,
+    selectedDate: new Date(),
     isLoading: false,
+
     lazadaOrders: null as Orders[] | null,
+    filteredLazadaOrders: null as Orders[] | null,
+    isLazadaCancelledOrdersSelected: false,
+    isLazadaReturnedOrdersSelected: false,
+    isLazadaRelesedOrdersSelected: false,
+
     shopeeOrders: null as Orders[] | null,
+    filteredShopeeOrders: null as Orders[] | null,
+    isShopeeCancelledOrdersSelected: false,
+    isShopeeReturnedOrdersSelected: false,
+    isShopeeRelesedOrdersSelected: false,
+    addOrderDialogOpen: false,
     success: "",
     error: "",
   };
@@ -48,23 +62,226 @@ class OrdersPage extends React.Component<{}> {
   };
 
   getLazadaOrders = () => {
-    services.getOrdersWithDate(new Date(), PROVIDER.lazada.id, (orders) => {
+    const { selectedDate } = this.state;
+    services.getOrdersWithDate(selectedDate, PROVIDER.lazada.id, (orders) => {
       this.setState({ lazadaOrders: orders });
       console.log("GOT ORDERS - getLazadaOrders", orders);
     });
   };
 
   getShopeeOrders = () => {
-    services.getOrdersWithDate(new Date(), PROVIDER.shopee.id, (orders) => {
+    const { selectedDate } = this.state;
+    services.getOrdersWithDate(selectedDate, PROVIDER.shopee.id, (orders) => {
       this.setState({ shopeeOrders: orders });
       console.log("GOT ORDERS - getShopeeOrders", orders);
     });
   };
 
+  formatLazadaOrders = () => {
+    const { filteredLazadaOrders, lazadaOrders } = this.state;
+    if (!_.isEmpty(lazadaOrders)) {
+      return (!_.isNull(filteredLazadaOrders)
+        ? filteredLazadaOrders
+        : lazadaOrders!
+      ).map((order) => {
+        const row = {} as Partial<OrderPrintDetails>;
+        row["Order ID"] = order.orderId;
+        row.Status = _.find(
+          Object.values(WAYBILL_STATUS),
+          (status) => status.id === order.status
+        )!.name;
+        row["Date Added"] = moment(order.createdDate.toDate()).format(
+          "MM-DD-YYYY"
+        );
+        return row as OrderPrintDetails;
+      });
+    } else {
+      return [];
+    }
+  };
+
+  downloadLazadaOrders = () => {
+    const { lazadaOrders } = this.state;
+    if (!_.isEmpty(lazadaOrders)) {
+      this.setState({ loading: true });
+      download(
+        this.formatLazadaOrders(),
+        `Lazada-${moment(new Date()).format("MM-DD-YYYY").toString()}`
+      );
+      this.setState({ loading: false });
+    } else {
+      this.setState({
+        error: "No orders found.",
+      });
+    }
+  };
+
+  formatShopeeOrders = () => {
+    const { filteredShopeeOrders, shopeeOrders } = this.state;
+    if (!_.isEmpty(shopeeOrders)) {
+      return (!_.isNull(filteredShopeeOrders)
+        ? filteredShopeeOrders
+        : shopeeOrders!
+      ).map((order) => {
+        const row = {} as Partial<OrderPrintDetails>;
+        row["Order ID"] = order.orderId;
+        row.Status = _.find(
+          Object.values(WAYBILL_STATUS),
+          (status) => status.id === order.status
+        )!.name;
+        row["Date Added"] = moment(order.createdDate.toDate()).format(
+          "MM-DD-YYYY"
+        );
+        return row as OrderPrintDetails;
+      });
+    } else {
+      return [];
+    }
+  };
+
+  downloadShopeeOrders = () => {
+    const { shopeeOrders } = this.state;
+    if (!_.isEmpty(shopeeOrders)) {
+      this.setState({ loading: true });
+      download(
+        this.formatShopeeOrders(),
+        `Shopee-${moment(new Date()).format("MM-DD-YYYY").toString()}`
+      );
+      this.setState({ loading: false });
+    } else {
+      this.setState({
+        error: "No orders found.",
+      });
+    }
+  };
+
+  filterLazadaOrders = () => {
+    const {
+      lazadaOrders,
+      isLazadaCancelledOrdersSelected,
+      isLazadaReturnedOrdersSelected,
+      isLazadaRelesedOrdersSelected,
+    } = this.state;
+
+    const compactStatus = _.compact([
+      isLazadaCancelledOrdersSelected,
+      isLazadaReturnedOrdersSelected,
+      isLazadaRelesedOrdersSelected,
+    ]);
+    if (compactStatus.length === 3 || compactStatus.length === 0) {
+      this.setState({
+        filteredLazadaOrders: null,
+      });
+    } else {
+      if (!_.isEmpty(lazadaOrders)) {
+        const newFilteredOrders = _.filter(lazadaOrders, (order) => {
+          let result = true;
+          if (
+            !isLazadaCancelledOrdersSelected &&
+            order.status === WAYBILL_STATUS.cancelled.id
+          ) {
+            result = false;
+          }
+
+          if (
+            !isLazadaReturnedOrdersSelected &&
+            order.status === WAYBILL_STATUS.returned.id
+          ) {
+            result = false;
+          }
+
+          if (
+            !isLazadaRelesedOrdersSelected &&
+            order.status === WAYBILL_STATUS.forRelease.id
+          ) {
+            result = false;
+          }
+
+          return result;
+        });
+
+        this.setState({
+          filteredLazadaOrders: newFilteredOrders,
+        });
+      }
+    }
+  };
+
+  filterShopeeOrders = () => {
+    const {
+      shopeeOrders,
+      isShopeeCancelledOrdersSelected,
+      isShopeeReturnedOrdersSelected,
+      isShopeeRelesedOrdersSelected,
+    } = this.state;
+
+    const compactStatus = _.compact([
+      isShopeeCancelledOrdersSelected,
+      isShopeeReturnedOrdersSelected,
+      isShopeeRelesedOrdersSelected,
+    ]);
+    if (compactStatus.length === 3 || compactStatus.length === 0) {
+      this.setState({
+        filteredShopeeOrders: null,
+      });
+    } else {
+      if (!_.isEmpty(shopeeOrders)) {
+        const newFilteredOrders = _.filter(shopeeOrders, (order) => {
+          let result = true;
+          if (
+            !isShopeeCancelledOrdersSelected &&
+            order.status === WAYBILL_STATUS.cancelled.id
+          ) {
+            result = false;
+          }
+
+          if (
+            !isShopeeReturnedOrdersSelected &&
+            order.status === WAYBILL_STATUS.returned.id
+          ) {
+            result = false;
+          }
+
+          if (
+            !isShopeeRelesedOrdersSelected &&
+            order.status === WAYBILL_STATUS.forRelease.id
+          ) {
+            result = false;
+          }
+
+          return result;
+        });
+
+        this.setState({
+          filteredShopeeOrders: newFilteredOrders,
+        });
+      }
+    }
+  };
+
+  setSelectedDateAndRefresh = async (selectedDate: Date) => {
+    this.setState({ selectedDate, lazadaOrders: null, shopeeOrders: null });
+    setTimeout(() => {
+      this.getLazadaOrders();
+      this.getShopeeOrders();
+    }, 500);
+  };
+
   render = () => {
     const {
       lazadaOrders,
+      calendarAnchor,
+      selectedDate,
+      filteredLazadaOrders,
+      isLazadaCancelledOrdersSelected,
+      isLazadaReturnedOrdersSelected,
+      isLazadaRelesedOrdersSelected,
       shopeeOrders,
+      filteredShopeeOrders,
+      isShopeeCancelledOrdersSelected,
+      isShopeeReturnedOrdersSelected,
+      isShopeeRelesedOrdersSelected,
+      addOrderDialogOpen,
       isLoading,
       success,
       error,
@@ -73,19 +290,153 @@ class OrdersPage extends React.Component<{}> {
       <IonPage>
         <ScannerCommonHeader showSignOut={true} />
         <IonContent className="ion-padding">
-          <IonGrid>
+          <div className="order-options-container">
+            <IonItem lines="none" className="ion-no-padding">
+              <IonLabel position="floating" className="ion-padding-bottom">
+                Selected Date
+              </IonLabel>
+              <IonInput
+                className="selected-date-input"
+                value={moment(selectedDate).format("MM-DD-YYYY")}
+                readonly={true}
+                onClick={(event) => {
+                  this.setState({ calendarAnchor: event.nativeEvent });
+                }}
+              />
+            </IonItem>
+            <IonButton
+              className="ion-margin-start wc-h1 bold white ion-text-capitalize add-button"
+              onClick={() => {
+                this.setState({
+                  addOrderDialogOpen: true,
+                });
+              }}
+            >
+              Add Order
+            </IonButton>
+          </div>
+          <IonGrid className="order-grid">
             <IonRow>
               <IonCol size="6">
                 <IonCard>
-                  <IonCardHeader>
+                  <IonCardHeader className="order-table-card-header ion-no-padding ion-padding-start ion-padding-end ion-padding-top">
                     <IonLabel className="wc-h1">Lazada Orders</IonLabel>
+                    <IonButton onClick={this.downloadLazadaOrders}>
+                      <IonIcon icon={downloadOutline} />
+                    </IonButton>
                   </IonCardHeader>
                   <IonCardContent>
                     {!_.isNull(lazadaOrders) ? (
                       !_.isEmpty(lazadaOrders) ? (
-                        lazadaOrders.map((order) => {
-                          return <IonLabel>{order.orderId}</IonLabel>;
-                        })
+                        <IonGrid>
+                          <IonRow>
+                            <IonCol size="4">
+                              <IonItem className="status-checkbox" lines="none">
+                                <IonCheckbox
+                                  checked={isLazadaRelesedOrdersSelected}
+                                  onIonChange={(event) => {
+                                    this.setState({
+                                      isLazadaRelesedOrdersSelected:
+                                        event.detail.checked,
+                                    });
+                                    setTimeout(() => {
+                                      this.filterLazadaOrders();
+                                    });
+                                  }}
+                                />
+                                <IonLabel className="wc-h3 ion-margin-start">
+                                  {WAYBILL_STATUS.forRelease.name}
+                                </IonLabel>
+                              </IonItem>
+                            </IonCol>
+                            <IonCol size="4">
+                              <IonItem className="status-checkbox" lines="none">
+                                <IonCheckbox
+                                  checked={isLazadaCancelledOrdersSelected}
+                                  onIonChange={(event) => {
+                                    this.setState({
+                                      isLazadaCancelledOrdersSelected:
+                                        event.detail.checked,
+                                    });
+                                    setTimeout(() => {
+                                      this.filterLazadaOrders();
+                                    });
+                                  }}
+                                />
+                                <IonLabel className="wc-h3 ion-margin-start">
+                                  {WAYBILL_STATUS.cancelled.name}
+                                </IonLabel>
+                              </IonItem>
+                            </IonCol>
+                            <IonCol size="4">
+                              <IonItem className="status-checkbox" lines="none">
+                                <IonCheckbox
+                                  checked={isLazadaReturnedOrdersSelected}
+                                  onIonChange={(event) => {
+                                    this.setState({
+                                      isLazadaReturnedOrdersSelected:
+                                        event.detail.checked,
+                                    });
+                                    setTimeout(() => {
+                                      this.filterLazadaOrders();
+                                    });
+                                  }}
+                                />
+                                <IonLabel className="wc-h3 ion-margin-start">
+                                  {WAYBILL_STATUS.returned.name}
+                                </IonLabel>
+                              </IonItem>
+                            </IonCol>
+                          </IonRow>
+                          <IonRow>
+                            <IonCol className="order-table-header" size="4">
+                              <IonLabel className="wc-h3 bold white">
+                                Order ID
+                              </IonLabel>
+                            </IonCol>
+                            <IonCol className="order-table-header" size="4">
+                              <IonLabel className="wc-h3 bold white">
+                                Status
+                              </IonLabel>
+                            </IonCol>
+                            <IonCol className="order-table-header" size="4">
+                              <IonLabel className="wc-h3 bold white">
+                                Date Added
+                              </IonLabel>
+                            </IonCol>
+                          </IonRow>
+                          {(!_.isNull(filteredLazadaOrders)
+                            ? filteredLazadaOrders
+                            : lazadaOrders
+                          ).map((order) => {
+                            return (
+                              <IonRow>
+                                <IonCol size="4">
+                                  <IonLabel className="wc-h4">
+                                    {order.orderId}
+                                  </IonLabel>
+                                </IonCol>
+                                <IonCol size="4">
+                                  <IonLabel className="wc-h4">
+                                    {
+                                      _.find(
+                                        Object.values(WAYBILL_STATUS),
+                                        (status) => status.id === order.status
+                                      )!.name
+                                    }
+                                  </IonLabel>
+                                </IonCol>
+                                <IonCol size="4">
+                                  <IonLabel className="wc-h4">
+                                    {moment(order.createdDate.toDate()).format(
+                                      "MM-DD-YYYY"
+                                    )}
+                                  </IonLabel>
+                                </IonCol>
+                              </IonRow>
+                            );
+                          })}
+                        </IonGrid>
                       ) : (
                         "No orders for this date"
                       )
@@ -97,15 +448,124 @@ class OrdersPage extends React.Component<{}> {
               </IonCol>
               <IonCol size="6">
                 <IonCard>
-                  <IonCardHeader>
+                  <IonCardHeader className="order-table-card-header ion-no-padding ion-padding-start ion-padding-end ion-padding-top">
                     <IonLabel className="wc-h1">Shopee Orders</IonLabel>
+                    <IonButton onClick={this.downloadShopeeOrders}>
+                      <IonIcon icon={downloadOutline} />
+                    </IonButton>
                   </IonCardHeader>
                   <IonCardContent>
                     {!_.isNull(shopeeOrders) ? (
                       !_.isEmpty(shopeeOrders) ? (
-                        shopeeOrders.map((order) => {
-                          return <IonLabel>{order.orderId}</IonLabel>;
-                        })
+                        <IonGrid>
+                          <IonRow>
+                            <IonCol size="4">
+                              <IonItem className="status-checkbox" lines="none">
+                                <IonCheckbox
+                                  checked={isShopeeRelesedOrdersSelected}
+                                  onIonChange={(event) => {
+                                    this.setState({
+                                      isShopeeRelesedOrdersSelected:
+                                        event.detail.checked,
+                                    });
+                                    setTimeout(() => {
+                                      this.filterShopeeOrders();
+                                    });
+                                  }}
+                                />
+                                <IonLabel className="wc-h3 ion-margin-start">
+                                  {WAYBILL_STATUS.forRelease.name}
+                                </IonLabel>
+                              </IonItem>
+                            </IonCol>
+                            <IonCol size="4">
+                              <IonItem className="status-checkbox" lines="none">
+                                <IonCheckbox
+                                  checked={isShopeeCancelledOrdersSelected}
+                                  onIonChange={(event) => {
+                                    this.setState({
+                                      isShopeeCancelledOrdersSelected:
+                                        event.detail.checked,
+                                    });
+                                    setTimeout(() => {
+                                      this.filterShopeeOrders();
+                                    });
+                                  }}
+                                />
+                                <IonLabel className="wc-h3 ion-margin-start">
+                                  {WAYBILL_STATUS.cancelled.name}
+                                </IonLabel>
+                              </IonItem>
+                            </IonCol>
+                            <IonCol size="4">
+                              <IonItem className="status-checkbox" lines="none">
+                                <IonCheckbox
+                                  checked={isShopeeReturnedOrdersSelected}
+                                  onIonChange={(event) => {
+                                    this.setState({
+                                      isShopeeReturnedOrdersSelected:
+                                        event.detail.checked,
+                                    });
+                                    setTimeout(() => {
+                                      this.filterShopeeOrders();
+                                    });
+                                  }}
+                                />
+                                <IonLabel className="wc-h3 ion-margin-start">
+                                  {WAYBILL_STATUS.returned.name}
+                                </IonLabel>
+                              </IonItem>
+                            </IonCol>
+                          </IonRow>
+                          <IonRow>
+                            <IonCol className="order-table-header" size="4">
+                              <IonLabel className="wc-h3 bold white">
+                                Order ID
+                              </IonLabel>
+                            </IonCol>
+                            <IonCol className="order-table-header" size="4">
+                              <IonLabel className="wc-h3 bold white">
+                                Status
+                              </IonLabel>
+                            </IonCol>
+                            <IonCol className="order-table-header" size="4">
+                              <IonLabel className="wc-h3 bold white">
+                                Date Added
+                              </IonLabel>
+                            </IonCol>
+                          </IonRow>
+                          {(!_.isNull(filteredShopeeOrders)
+                            ? filteredShopeeOrders
+                            : shopeeOrders
+                          ).map((order) => {
+                            return (
+                              <IonRow>
+                                <IonCol size="4">
+                                  <IonLabel className="wc-h4">
+                                    {order.orderId}
+                                  </IonLabel>
+                                </IonCol>
+                                <IonCol size="4">
+                                  <IonLabel className="wc-h4">
+                                    {
+                                      _.find(
+                                        Object.values(WAYBILL_STATUS),
+                                        (status) => status.id === order.status
+                                      )!.name
+                                    }
+                                  </IonLabel>
+                                </IonCol>
+                                <IonCol size="4">
+                                  <IonLabel className="wc-h4">
+                                    {moment(order.createdDate.toDate()).format(
+                                      "MM-DD-YYYY"
+                                    )}
+                                  </IonLabel>
+                                </IonCol>
+                              </IonRow>
+                            );
+                          })}
+                        </IonGrid>
                       ) : (
                         "No orders for this date"
                       )
@@ -118,6 +578,30 @@ class OrdersPage extends React.Component<{}> {
             </IonRow>
           </IonGrid>
         </IonContent>
+
+        <AddOrderDialog
+          isOpen={addOrderDialogOpen}
+          onCancel={() => {
+            this.setState({
+              addOrderDialogOpen: false,
+            });
+          }}
+          onDidDismiss={() => {
+            this.setState({
+              addOrderDialogOpen: false,
+            });
+          }}
+        />
+
+        <ScannerCalendar
+          calendarAnchor={calendarAnchor}
+          selectedDate={selectedDate}
+          removeCalendarAnchor={() => {
+            this.setState({ calendarAnchor: null });
+          }}
+          onDateChange={this.setSelectedDateAndRefresh}
+          minDate={new Date()}
+        />
 
         <IonLoading
           translucent={true}

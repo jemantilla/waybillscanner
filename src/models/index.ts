@@ -7,3 +7,9 @@ export interface Orders {
   status: WaybillStatus;
   createdDate: firebase.firestore.Timestamp;
 }
+
+export interface OrderPrintDetails {
+  "Order ID": string;
+  Status: string;
+  "Date Added": string;
+}

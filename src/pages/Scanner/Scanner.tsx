@@ -58,7 +58,8 @@ export const Scanner = () => {
     } else if (
       clonedScannedWayBill.indexOf(scannedItem) !== -1 ||
       (!_.isEmpty(existingOrder) &&
-        existingOrder!.status !== WAYBILL_STATUS.cancelled.id)
+        existingOrder!.status !== WAYBILL_STATUS.cancelled.id &&
+        waybillStatus === WAYBILL_STATUS.forRelease.id)
     ) {
       setError("Duplicate waybill detected.");
     } else if (

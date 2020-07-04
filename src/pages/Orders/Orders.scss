@@ -1,36 +1,32 @@
-.home-header-container {
+.order-options-container {
+  margin: 20px;
   display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+
+  .selected-date-input {
+    max-width: 150px;
+    border: 2px solid var(--ion-color-primary);
+    border-radius: 5px;
+    height: 40px;
+  }
+  .add-button {
+    height: 40px;
+  }
 }
 
-.sign-in-container {
-  width: 50%;
-  max-width: 600px;
-  margin: 50px auto;
-
-  &.mobile {
-    width: 100%;
-  }
-
-  .login-button {
-    width: 100%;
-  }
-
-  .sign-in-user-input-item {
-    .password-visibility {
-      position: absolute;
-      right: 0;
-    }
-  }
-
-  .forgot-password {
+.order-grid {
+  .order-table-card-header {
     display: flex;
-    justify-content: center;
     align-items: center;
-    text-align: center;
+    justify-content: space-between;
+  }
 
-    .forgot-password-spiel {
-      vertical-align: middle;
-      padding-right: 5px;
-    }
+  .status-checkbox {
+    --inner-padding-start: none;
+  }
+
+  .order-table-header {
+    background-color: var(--ion-color-primary);
   }
 }

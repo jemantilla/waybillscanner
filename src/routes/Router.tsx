@@ -14,7 +14,7 @@ import { Scanner } from "../pages/Scanner/Scanner";
 import { UnauthenticatedRoute } from "./UnauthenticatedRoute";
 import Home from "../pages/Home/Home";
 import { ORDERS } from "../constants/dbCollections";
-import Orders from "../pages/Orders/Orders";
+import OrdersPage from "../pages/Orders/Orders";
 
 class RouterComponent extends React.Component<any, any> {
   state = {
@@ -95,7 +95,7 @@ class RouterComponent extends React.Component<any, any> {
             />
             <AuthenticatedRoute
               path={routes.ORDER_PAGE}
-              component={Orders}
+              component={OrdersPage}
               exact={true}
               authUser={authUser}
             />

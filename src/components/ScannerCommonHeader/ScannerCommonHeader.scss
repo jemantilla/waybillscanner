@@ -3,6 +3,12 @@
   justify-content: space-between;
   width: 100%;
 
+  .header-popover {
+    .logout-button {
+      border-top: 1px solid var(--ion-color-light);
+    }
+  }
+
   .home-header-logo {
     display: flex;
     max-height: 73px;

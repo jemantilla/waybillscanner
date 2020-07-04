@@ -45,7 +45,7 @@ export const PROVIDER = {
 export const WAYBILL_STATUS = {
   forRelease: {
     id: 1 as WaybillStatus,
-    name: "For Release",
+    name: "Released",
   },
   cancelled: {
     id: 2 as WaybillStatus,
