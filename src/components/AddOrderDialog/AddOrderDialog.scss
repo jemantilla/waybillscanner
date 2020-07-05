@@ -34,9 +34,10 @@
     .add-order-dialog-radio-container {
       width: 100%;
     }
-    .add-order-dialog-others-container {
+    .add-order-dialog-order-list {
+      max-height: 200px;
+      overflow-y: auto;
       width: 100%;
-      margin-top: 21px;
     }
     .add-order-dialog-options-container {
       display: flex;
@@ -59,6 +60,12 @@
     .order-input {
       border: 1px solid var(--ion-color-primary);
       border-radius: 5px;
+      .add-order-dialog-button {
+        position: absolute;
+        right: 0;
+        top: 0;
+        height: 30px;
+      }
     }
   }
 }

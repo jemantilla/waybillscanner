@@ -21,7 +21,7 @@ import {
   IonSpinner,
   IonCheckbox,
 } from "@ionic/react";
-import { downloadOutline } from "ionicons/icons";
+import { downloadOutline, trashBinOutline } from "ionicons/icons";
 
 import "./Orders.scss";
 import * as services from "../../services";
@@ -36,8 +36,10 @@ import { SCOLORS, PROVIDER, WAYBILL_STATUS } from "../../constants/config";
 
 class OrdersPage extends React.Component<{}> {
   state = {
-    calendarAnchor: null as Event | undefined | null,
-    selectedDate: new Date(),
+    calendarFromAnchor: null as Event | undefined | null,
+    calendarToAnchor: null as Event | undefined | null,
+    selectedFromDate: new Date(),
+    selectedToDate: new Date(),
     isLoading: false,
 
     lazadaOrders: null as Orders[] | null,
@@ -97,19 +99,29 @@ class OrdersPage extends React.Component<{}> {
   };
 
   getLazadaOrders = () => {
-    const { selectedDate } = this.state;
-    services.getOrdersWithDate(selectedDate, PROVIDER.lazada.id, (orders) => {
-      this.setState({ lazadaOrders: orders });
-      console.log("GOT ORDERS - getLazadaOrders", orders);
-    });
+    const { selectedFromDate, selectedToDate } = this.state;
+    services.getOrdersWithDate(
+      selectedFromDate,
+      selectedToDate,
+      PROVIDER.lazada.id,
+      (orders) => {
+        this.setState({ lazadaOrders: orders });
+        console.log("GOT ORDERS - getLazadaOrders", orders);
+      }
+    );
   };
 
   getShopeeOrders = () => {
-    const { selectedDate } = this.state;
-    services.getOrdersWithDate(selectedDate, PROVIDER.shopee.id, (orders) => {
-      this.setState({ shopeeOrders: orders });
-      console.log("GOT ORDERS - getShopeeOrders", orders);
-    });
+    const { selectedFromDate, selectedToDate } = this.state;
+    services.getOrdersWithDate(
+      selectedFromDate,
+      selectedToDate,
+      PROVIDER.shopee.id,
+      (orders) => {
+        this.setState({ shopeeOrders: orders });
+        console.log("GOT ORDERS - getShopeeOrders", orders);
+      }
+    );
   };
 
   formatLazadaOrders = () => {
@@ -126,7 +138,7 @@ class OrdersPage extends React.Component<{}> {
           (status) => status.id === order.status
         )!.name;
         row["Date Added"] = moment(order.createdDate.toDate()).format(
-          "MM-DD-YYYY"
+          "MM-DD-YYYY HH:MM:SS"
         );
         return row as OrderPrintDetails;
       });
@@ -141,7 +153,7 @@ class OrdersPage extends React.Component<{}> {
       this.setState({ loading: true });
       download(
         this.formatLazadaOrders(),
-        `Lazada-${moment(new Date()).format("MM-DD-YYYY").toString()}`
+        `Lazada-${moment(new Date()).format("MM-DD-YYYY HH:MM:SS").toString()}`
       );
       this.setState({ loading: false });
     } else {
@@ -165,7 +177,7 @@ class OrdersPage extends React.Component<{}> {
           (status) => status.id === order.status
         )!.name;
         row["Date Added"] = moment(order.createdDate.toDate()).format(
-          "MM-DD-YYYY"
+          "MM-DD-YYYY HH:MM:SS"
         );
         return row as OrderPrintDetails;
       });
@@ -180,7 +192,7 @@ class OrdersPage extends React.Component<{}> {
       this.setState({ loading: true });
       download(
         this.formatShopeeOrders(),
-        `Shopee-${moment(new Date()).format("MM-DD-YYYY").toString()}`
+        `Shopee-${moment(new Date()).format("MM-DD-YYYY HH:MM:SS").toString()}`
       );
       this.setState({ loading: false });
     } else {
@@ -294,19 +306,46 @@ class OrdersPage extends React.Component<{}> {
     }
   };
 
-  setSelectedDateAndRefresh = async (selectedDate: Date) => {
-    this.setState({ selectedDate, lazadaOrders: null, shopeeOrders: null });
+  setSelectedDateFromAndRefresh = async (selectedFromDate: Date) => {
+    this.setState({ selectedFromDate, lazadaOrders: null, shopeeOrders: null });
+    setTimeout(() => {
+      this.getLazadaOrders();
+      this.getShopeeOrders();
+    }, 500);
+  };
+  setSelectedDateToAndRefresh = async (selectedToDate: Date) => {
+    this.setState({ selectedToDate, lazadaOrders: null, shopeeOrders: null });
     setTimeout(() => {
       this.getLazadaOrders();
       this.getShopeeOrders();
     }, 500);
   };
 
+  deleteOrder = async (docId: string) => {
+    try {
+      this.setState({
+        isLoading: true,
+      });
+      await services.deleteOrderId(docId);
+      this.setState({
+        success: "Order Deleted",
+        isLoading: false,
+      });
+    } catch (e) {
+      this.setState({
+        error: e,
+        isLoading: false,
+      });
+    }
+  };
+
   render = () => {
     const {
       lazadaOrders,
-      calendarAnchor,
-      selectedDate,
+      calendarFromAnchor,
+      calendarToAnchor,
+      selectedFromDate,
+      selectedToDate,
       filteredLazadaOrders,
       isLazadaCancelledOrdersSelected,
       isLazadaReturnedOrdersSelected,
@@ -327,19 +366,40 @@ class OrdersPage extends React.Component<{}> {
         <ScannerCommonHeader showSignOut={true} />
         <IonContent className="ion-padding">
           <div className="order-options-container">
-            <IonItem lines="none" className="ion-no-padding">
-              <IonLabel position="floating" className="ion-padding-bottom">
-                Selected Date
-              </IonLabel>
-              <IonInput
-                className="selected-date-input"
-                value={moment(selectedDate).format("MM-DD-YYYY")}
-                readonly={true}
-                onClick={(event) => {
-                  this.setState({ calendarAnchor: event.nativeEvent });
-                }}
-              />
-            </IonItem>
+            <div className="date-range-container">
+              <IonItem lines="none" className="ion-no-padding">
+                <IonLabel
+                  position="floating"
+                  className="ion-padding-bottom wc-h3 bold"
+                >
+                  From Date
+                </IonLabel>
+                <IonInput
+                  className="selected-date-input"
+                  value={moment(selectedFromDate).format("MM-DD-YYYY")}
+                  readonly={true}
+                  onClick={(event) => {
+                    this.setState({ calendarFromAnchor: event.nativeEvent });
+                  }}
+                />
+              </IonItem>
+              <IonItem lines="none" className="ion-no-padding">
+                <IonLabel
+                  position="floating"
+                  className="ion-padding-bottom wc-h3 bold"
+                >
+                  To Date
+                </IonLabel>
+                <IonInput
+                  className="selected-date-input"
+                  value={moment(selectedToDate).format("MM-DD-YYYY")}
+                  readonly={true}
+                  onClick={(event) => {
+                    this.setState({ calendarToAnchor: event.nativeEvent });
+                  }}
+                />
+              </IonItem>
+            </div>
             <IonButton
               className="ion-margin-start wc-h1 bold white ion-text-capitalize add-button"
               onClick={() => {
@@ -425,21 +485,25 @@ class OrdersPage extends React.Component<{}> {
                             </IonCol>
                           </IonRow>
                           <IonRow>
-                            <IonCol className="order-table-header" size="4">
+                            <IonCol className="order-table-header" size="3.75">
                               <IonLabel className="wc-h3 bold white">
                                 Order ID
                               </IonLabel>
                             </IonCol>
-                            <IonCol className="order-table-header" size="4">
+                            <IonCol className="order-table-header" size="3.5">
                               <IonLabel className="wc-h3 bold white">
                                 Status
                               </IonLabel>
                             </IonCol>
-                            <IonCol className="order-table-header" size="4">
+                            <IonCol className="order-table-header" size="3.75">
                               <IonLabel className="wc-h3 bold white">
                                 Date Added
                               </IonLabel>
                             </IonCol>
+                            <IonCol
+                              className="order-table-header"
+                              size="1"
+                            ></IonCol>
                           </IonRow>
                           {(!_.isNull(filteredLazadaOrders)
                             ? filteredLazadaOrders
@@ -447,12 +511,12 @@ class OrdersPage extends React.Component<{}> {
                           ).map((order) => {
                             return (
                               <IonRow>
-                                <IonCol size="4">
+                                <IonCol size="3.75">
                                   <IonLabel className="wc-h4">
                                     {order.orderId}
                                   </IonLabel>
                                 </IonCol>
-                                <IonCol size="4">
+                                <IonCol size="3.5">
                                   <IonLabel className="wc-h4">
                                     {
                                       _.find(
@@ -462,12 +526,23 @@ class OrdersPage extends React.Component<{}> {
                                     }
                                   </IonLabel>
                                 </IonCol>
-                                <IonCol size="4">
+                                <IonCol size="3.75">
                                   <IonLabel className="wc-h4">
                                     {moment(order.createdDate.toDate()).format(
-                                      "MM-DD-YYYY"
+                                      "MM-DD-YYYY HH:MM:SS"
                                     )}
                                   </IonLabel>
+                                </IonCol>
+                                <IonCol size="1">
+                                  <IonButton
+                                    fill="clear"
+                                    size="small"
+                                    onClick={() => {
+                                      this.deleteOrder(order.docId || "");
+                                    }}
+                                  >
+                                    <IonIcon icon={trashBinOutline} />
+                                  </IonButton>
                                 </IonCol>
                               </IonRow>
                             );
@@ -554,21 +629,25 @@ class OrdersPage extends React.Component<{}> {
                             </IonCol>
                           </IonRow>
                           <IonRow>
-                            <IonCol className="order-table-header" size="4">
+                            <IonCol className="order-table-header" size="3.75">
                               <IonLabel className="wc-h3 bold white">
                                 Order ID
                               </IonLabel>
                             </IonCol>
-                            <IonCol className="order-table-header" size="4">
+                            <IonCol className="order-table-header" size="3.5">
                               <IonLabel className="wc-h3 bold white">
                                 Status
                               </IonLabel>
                             </IonCol>
-                            <IonCol className="order-table-header" size="4">
+                            <IonCol className="order-table-header" size="3.75">
                               <IonLabel className="wc-h3 bold white">
                                 Date Added
                               </IonLabel>
                             </IonCol>
+                            <IonCol
+                              className="order-table-header"
+                              size="1"
+                            ></IonCol>
                           </IonRow>
                           {(!_.isNull(filteredShopeeOrders)
                             ? filteredShopeeOrders
@@ -576,12 +655,12 @@ class OrdersPage extends React.Component<{}> {
                           ).map((order) => {
                             return (
                               <IonRow>
-                                <IonCol size="4">
+                                <IonCol size="3.75">
                                   <IonLabel className="wc-h4">
                                     {order.orderId}
                                   </IonLabel>
                                 </IonCol>
-                                <IonCol size="4">
+                                <IonCol size="3.5">
                                   <IonLabel className="wc-h4">
                                     {
                                       _.find(
@@ -591,12 +670,23 @@ class OrdersPage extends React.Component<{}> {
                                     }
                                   </IonLabel>
                                 </IonCol>
-                                <IonCol size="4">
+                                <IonCol size="3.75">
                                   <IonLabel className="wc-h4">
                                     {moment(order.createdDate.toDate()).format(
-                                      "MM-DD-YYYY"
+                                      "MM-DD-YYYY HH:MM:SS"
                                     )}
                                   </IonLabel>
+                                </IonCol>
+                                <IonCol size="1">
+                                  <IonButton
+                                    fill="clear"
+                                    size="small"
+                                    onClick={() => {
+                                      this.deleteOrder(order.docId || "");
+                                    }}
+                                  >
+                                    <IonIcon icon={trashBinOutline} />
+                                  </IonButton>
                                 </IonCol>
                               </IonRow>
                             );
@@ -652,12 +742,22 @@ class OrdersPage extends React.Component<{}> {
         />
 
         <ScannerCalendar
-          calendarAnchor={calendarAnchor}
-          selectedDate={selectedDate}
+          calendarAnchor={calendarFromAnchor}
+          selectedDate={selectedFromDate}
           removeCalendarAnchor={() => {
-            this.setState({ calendarAnchor: null });
+            this.setState({ calendarFromAnchor: null });
           }}
-          onDateChange={this.setSelectedDateAndRefresh}
+          onDateChange={this.setSelectedDateFromAndRefresh}
+          minDate={new Date()}
+        />
+
+        <ScannerCalendar
+          calendarAnchor={calendarToAnchor}
+          selectedDate={selectedToDate}
+          removeCalendarAnchor={() => {
+            this.setState({ calendarToAnchor: null });
+          }}
+          onDateChange={this.setSelectedDateToAndRefresh}
           minDate={new Date()}
         />
 

@@ -10,6 +10,7 @@ import {
   IonToast,
   IonLoading,
   IonInput,
+  IonList,
 } from "@ionic/react";
 
 import "./AddOrderDialog.scss";
@@ -27,7 +28,8 @@ interface AddOrderDialogProps {
 export const AddOrderDialog = (props: AddOrderDialogProps) => {
   const { isOpen, onDidDismiss, onCancel } = props;
   const [selectedProvider, setSelectedProvider] = useState(1 as Provider);
-  const [selectedStatus, setSelectedStatus] = useState(1 as WaybillStatus);
+  const [selectedStatus, setSelectedStatus] = useState(2 as WaybillStatus);
+  const [orderIds, setOrderIds] = useState([] as string[]);
   const [orderId, setOrderId] = useState("");
 
   const [loading, setLoading] = useState(false);
@@ -37,10 +39,14 @@ export const AddOrderDialog = (props: AddOrderDialogProps) => {
   const onSubmit = async () => {
     setLoading(true);
     try {
-      await services.submitScannedWaybill(
-        selectedProvider,
-        orderId,
-        selectedStatus
+      await Promise.all(
+        orderIds.map((orderId) =>
+          services.submitScannedWaybill(
+            selectedProvider,
+            orderId,
+            selectedStatus
+          )
+        )
       );
       setLoading(false);
       setSuccess("Success");
@@ -48,6 +54,13 @@ export const AddOrderDialog = (props: AddOrderDialogProps) => {
       setLoading(false);
       setError(e);
     }
+  };
+
+  const onAddOrderId = () => {
+    const clonedOrderIds = _.cloneDeep(orderIds);
+    clonedOrderIds.push(orderId);
+    setOrderId("");
+    setOrderIds(clonedOrderIds);
   };
   return (
     <IonModal
@@ -58,6 +71,7 @@ export const AddOrderDialog = (props: AddOrderDialogProps) => {
         setSelectedProvider(1);
         setSelectedStatus(1);
         setOrderId("");
+        setOrderIds([]);
       }}
     >
       <div className="modal-content">
@@ -76,12 +90,12 @@ export const AddOrderDialog = (props: AddOrderDialogProps) => {
             value={selectedProvider}
             onIonChange={(e) => setSelectedProvider(e.detail.value)}
           >
-            <IonItem lines="none">
+            <IonItem lines="none" disabled={!_.isEmpty(orderIds)}>
               <IonLabel>{PROVIDER.lazada.name}</IonLabel>
               <IonRadio slot="start" value={PROVIDER.lazada.id} />
             </IonItem>
 
-            <IonItem lines="none">
+            <IonItem lines="none" disabled={!_.isEmpty(orderIds)}>
               <IonLabel>{PROVIDER.shopee.name}</IonLabel>
               <IonRadio slot="start" value={PROVIDER.shopee.id} />
             </IonItem>
@@ -95,12 +109,12 @@ export const AddOrderDialog = (props: AddOrderDialogProps) => {
             value={selectedStatus}
             onIonChange={(e) => setSelectedStatus(e.detail.value)}
           >
-            <IonItem lines="none">
+            <IonItem lines="none" disabled={!_.isEmpty(orderIds)}>
               <IonLabel>{WAYBILL_STATUS.cancelled.name}</IonLabel>
               <IonRadio slot="start" value={WAYBILL_STATUS.cancelled.id} />
             </IonItem>
 
-            <IonItem lines="none">
+            <IonItem lines="none" disabled={!_.isEmpty(orderIds)}>
               <IonLabel>{WAYBILL_STATUS.returned.name}</IonLabel>
               <IonRadio slot="start" value={WAYBILL_STATUS.returned.id} />
             </IonItem>
@@ -112,7 +126,34 @@ export const AddOrderDialog = (props: AddOrderDialogProps) => {
               setOrderId(event.detail.value || "");
             }}
             color="dark"
-          ></IonInput>
+          >
+            <IonButton
+              className="add-order-dialog-button"
+              disabled={_.isEmpty(orderId)}
+              onClick={onAddOrderId}
+            >
+              Add
+            </IonButton>
+          </IonInput>
+          <IonLabel className="wc-h2 bold ion-align-self-start ion-margin-top">
+            To Add:
+          </IonLabel>
+          <IonList className="add-order-dialog-order-list ion-align-self-start">
+            {!_.isEmpty(orderIds) ? (
+              orderIds.map((orderId, index) => {
+                return (
+                  <IonItem lines="none">
+                    <b>{index + 1}. </b> {orderId}
+                  </IonItem>
+                );
+              })
+            ) : (
+              <IonItem lines="none">
+                <IonLabel className="wc-h4">No Order Ids to Add</IonLabel>
+              </IonItem>
+            )}
+          </IonList>
+
           <div className="add-order-dialog-options-container">
             <IonButton
               onClick={onCancel}

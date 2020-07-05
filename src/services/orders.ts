@@ -21,6 +21,10 @@ export const submitScannedWaybill = async (
   });
 };
 
+export const deleteOrderId = async (docId: string) => {
+  await firestore.collection(ORDERS).doc(docId).delete();
+};
+
 export const getLatestWaybills = async (
   callback: (orders: Orders[]) => void
 ) => {
@@ -31,7 +35,7 @@ export const getLatestWaybills = async (
     dateMax.setSeconds(59);
     dateMax.setMilliseconds(59);
 
-    const dateMin = moment(_.clone(dateMax)).subtract(3, "days").toDate();
+    const dateMin = moment(_.clone(dateMax)).subtract(7, "days").toDate();
     dateMin.setHours(0);
     dateMin.setMinutes(0);
     dateMin.setSeconds(0);
@@ -63,18 +67,19 @@ export const getLatestWaybills = async (
 };
 
 export const getOrdersWithDate = async (
-  date: Date,
+  dateFrom: Date,
+  dateTo: Date,
   provider: Provider,
   callback: (orders: Orders[]) => void
 ) => {
   try {
-    const dateMin = _.clone(date);
+    const dateMin = _.clone(dateFrom);
     dateMin.setHours(0);
     dateMin.setMinutes(0);
     dateMin.setSeconds(0);
     dateMin.setMilliseconds(0);
 
-    const dateMax = _.clone(date);
+    const dateMax = _.clone(dateTo);
     dateMax.setHours(23);
     dateMax.setMinutes(59);
     dateMax.setSeconds(59);
