@@ -11,13 +11,14 @@ import { WAYBILL_STATUS } from "../constants/config";
 export const submitScannedWaybill = async (
   provider: Provider,
   orderId: string,
-  status: WaybillStatus
+  status: WaybillStatus,
+  date: Date
 ) => {
   await firestore.collection(ORDERS).add({
     provider,
     orderId,
     status,
-    createdDate: getServerTimestamp(),
+    createdDate: getServerTimestamp(date),
   });
 };
 

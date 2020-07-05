@@ -44,7 +44,8 @@ export const AddOrderDialog = (props: AddOrderDialogProps) => {
           services.submitScannedWaybill(
             selectedProvider,
             orderId,
-            selectedStatus
+            selectedStatus,
+            new Date()
           )
         )
       );

@@ -33,6 +33,10 @@ import { ScannerCommonHeader } from "../../components/ScannerCommonHeader/Scanne
 import { Orders, OrderPrintDetails } from "../../models";
 import { MSGS_COMMON } from "../../constants/messages";
 import { SCOLORS, PROVIDER, WAYBILL_STATUS } from "../../constants/config";
+import {
+  ScannerDropdownSelect,
+  ScannerDropdownSelectOption,
+} from "../../components/ScannerDropdownSelect/ScannerDropdownSelect";
 
 class OrdersPage extends React.Component<{}> {
   state = {
@@ -43,12 +47,16 @@ class OrdersPage extends React.Component<{}> {
     isLoading: false,
 
     lazadaOrders: null as Orders[] | null,
+    lazadaBatchOptions: [] as ScannerDropdownSelectOption[],
+    selectedLazadaBatch: {} as ScannerDropdownSelectOption,
     filteredLazadaOrders: null as Orders[] | null,
     isLazadaCancelledOrdersSelected: false,
     isLazadaReturnedOrdersSelected: false,
     isLazadaRelesedOrdersSelected: false,
 
     shopeeOrders: null as Orders[] | null,
+    shopeeBatchOptions: [] as ScannerDropdownSelectOption[],
+    selectedShopeeBatch: {} as ScannerDropdownSelectOption,
     filteredShopeeOrders: null as Orders[] | null,
     isShopeeCancelledOrdersSelected: false,
     isShopeeReturnedOrdersSelected: false,
@@ -99,27 +107,72 @@ class OrdersPage extends React.Component<{}> {
   };
 
   getLazadaOrders = () => {
-    const { selectedFromDate, selectedToDate } = this.state;
+    const {
+      selectedFromDate,
+      selectedToDate,
+      filteredLazadaOrders,
+    } = this.state;
     services.getOrdersWithDate(
       selectedFromDate,
       selectedToDate,
       PROVIDER.lazada.id,
       (orders) => {
-        this.setState({ lazadaOrders: orders });
-        console.log("GOT ORDERS - getLazadaOrders", orders);
+        const batchOptions = Object.keys(
+          _.groupBy(orders, (order) => order.createdDate.toDate())
+        ).map((batch, index) => {
+          return {
+            id: batch,
+            name: "Batch " + (index + 1).toString(),
+          };
+        }) as ScannerDropdownSelectOption[];
+        const finalBatch = [
+          ...[{ id: "all", name: "All Batch" }],
+          ...batchOptions,
+        ];
+        this.setState({
+          lazadaOrders: orders,
+          lazadaBatchOptions: finalBatch,
+          selectedLazadaBatch: finalBatch[0],
+        });
+        if (!_.isNull(filteredLazadaOrders)) {
+          this.filterLazadaOrders();
+        }
       }
     );
   };
 
   getShopeeOrders = () => {
-    const { selectedFromDate, selectedToDate } = this.state;
+    const {
+      selectedFromDate,
+      selectedToDate,
+      filteredShopeeOrders,
+    } = this.state;
     services.getOrdersWithDate(
       selectedFromDate,
       selectedToDate,
       PROVIDER.shopee.id,
       (orders) => {
-        this.setState({ shopeeOrders: orders });
-        console.log("GOT ORDERS - getShopeeOrders", orders);
+        const batchOptions = Object.keys(
+          _.groupBy(orders, (order) => order.createdDate.toDate())
+        ).map((batch, index) => {
+          return {
+            id: batch,
+            name: "Batch " + (index + 1).toString(),
+          };
+        }) as ScannerDropdownSelectOption[];
+        const finalBatch = [
+          ...[{ id: "all", name: "All Batch" }],
+          ...batchOptions,
+        ];
+        this.setState({
+          shopeeOrders: orders,
+          shopeeBatchOptions: finalBatch,
+          selectedShopeeBatch: finalBatch[0],
+        });
+
+        if (!_.isNull(filteredShopeeOrders)) {
+          this.filterShopeeOrders();
+        }
       }
     );
   };
@@ -127,7 +180,7 @@ class OrdersPage extends React.Component<{}> {
   formatLazadaOrders = () => {
     const { filteredLazadaOrders, lazadaOrders } = this.state;
     if (!_.isEmpty(lazadaOrders)) {
-      return (!_.isNull(filteredLazadaOrders)
+      const jsonFileToDownload = (!_.isNull(filteredLazadaOrders)
         ? filteredLazadaOrders
         : lazadaOrders!
       ).map((order) => {
@@ -142,6 +195,44 @@ class OrdersPage extends React.Component<{}> {
         );
         return row as OrderPrintDetails;
       });
+      const finalJsonFileToDownload = [
+        ...jsonFileToDownload,
+        {},
+        {},
+        {
+          "Order ID": "Courier: __________________",
+          Status: "",
+          "Date Added": "",
+        },
+        {},
+        {
+          "Order ID": `Total No. of Parcel: ${jsonFileToDownload.length}`,
+          Status: "",
+          "Date Added": "",
+        },
+        {},
+        {
+          "Order ID": "Recieved By: __________________",
+          Status: "",
+          "Date Added": "",
+        },
+        {},
+        {
+          "Order ID": "Plate: __________________",
+          Status: "",
+          "Date Added": "",
+        },
+        {},
+        {
+          "Order ID": `Date and Time: ${moment(new Date()).format(
+            "MM/DD/YYYY HH:MM:SS"
+          )}`,
+          Status: "",
+          "Date Added": "",
+        },
+      ];
+
+      return finalJsonFileToDownload;
     } else {
       return [];
     }
@@ -166,7 +257,7 @@ class OrdersPage extends React.Component<{}> {
   formatShopeeOrders = () => {
     const { filteredShopeeOrders, shopeeOrders } = this.state;
     if (!_.isEmpty(shopeeOrders)) {
-      return (!_.isNull(filteredShopeeOrders)
+      const jsonFileToDownload = (!_.isNull(filteredShopeeOrders)
         ? filteredShopeeOrders
         : shopeeOrders!
       ).map((order) => {
@@ -181,6 +272,44 @@ class OrdersPage extends React.Component<{}> {
         );
         return row as OrderPrintDetails;
       });
+      const finalJsonFileToDownload = [
+        ...jsonFileToDownload,
+        {},
+        {},
+        {
+          "Order ID": "Courier: __________________",
+          Status: "",
+          "Date Added": "",
+        },
+        {},
+        {
+          "Order ID": `Total No. of Parcel: ${jsonFileToDownload.length}`,
+          Status: "",
+          "Date Added": "",
+        },
+        {},
+        {
+          "Order ID": "Recieved By: __________________",
+          Status: "",
+          "Date Added": "",
+        },
+        {},
+        {
+          "Order ID": "Plate: __________________",
+          Status: "",
+          "Date Added": "",
+        },
+        {},
+        {
+          "Order ID": `Date and Time: ${moment(new Date()).format(
+            "MM/DD/YYYY HH:MM:SS"
+          )}`,
+          Status: "",
+          "Date Added": "",
+        },
+      ];
+
+      return finalJsonFileToDownload;
     } else {
       return [];
     }
@@ -205,6 +334,7 @@ class OrdersPage extends React.Component<{}> {
   filterLazadaOrders = () => {
     const {
       lazadaOrders,
+      selectedLazadaBatch,
       isLazadaCancelledOrdersSelected,
       isLazadaReturnedOrdersSelected,
       isLazadaRelesedOrdersSelected,
@@ -214,6 +344,7 @@ class OrdersPage extends React.Component<{}> {
       isLazadaCancelledOrdersSelected,
       isLazadaReturnedOrdersSelected,
       isLazadaRelesedOrdersSelected,
+      selectedLazadaBatch.id !== "all",
     ]);
     if (compactStatus.length === 3 || compactStatus.length === 0) {
       this.setState({
@@ -223,23 +354,42 @@ class OrdersPage extends React.Component<{}> {
       if (!_.isEmpty(lazadaOrders)) {
         const newFilteredOrders = _.filter(lazadaOrders, (order) => {
           let result = true;
+          const compactOrderStatus = _.compact([
+            isLazadaCancelledOrdersSelected,
+            isLazadaReturnedOrdersSelected,
+            isLazadaRelesedOrdersSelected,
+          ]);
           if (
-            !isLazadaCancelledOrdersSelected &&
-            order.status === WAYBILL_STATUS.cancelled.id
+            compactOrderStatus.length === 3 ||
+            compactOrderStatus.length === 0
           ) {
-            result = false;
+            result = true;
+          } else {
+            if (
+              !isLazadaCancelledOrdersSelected &&
+              order.status === WAYBILL_STATUS.cancelled.id
+            ) {
+              result = false;
+            }
+
+            if (
+              !isLazadaReturnedOrdersSelected &&
+              order.status === WAYBILL_STATUS.returned.id
+            ) {
+              result = false;
+            }
+
+            if (
+              !isLazadaRelesedOrdersSelected &&
+              order.status === WAYBILL_STATUS.forRelease.id
+            ) {
+              result = false;
+            }
           }
 
           if (
-            !isLazadaReturnedOrdersSelected &&
-            order.status === WAYBILL_STATUS.returned.id
-          ) {
-            result = false;
-          }
-
-          if (
-            !isLazadaRelesedOrdersSelected &&
-            order.status === WAYBILL_STATUS.forRelease.id
+            selectedLazadaBatch.id !== "all" &&
+            selectedLazadaBatch.id !== order.createdDate.toDate().toString()
           ) {
             result = false;
           }
@@ -260,14 +410,16 @@ class OrdersPage extends React.Component<{}> {
       isShopeeCancelledOrdersSelected,
       isShopeeReturnedOrdersSelected,
       isShopeeRelesedOrdersSelected,
+      selectedShopeeBatch,
     } = this.state;
 
     const compactStatus = _.compact([
       isShopeeCancelledOrdersSelected,
       isShopeeReturnedOrdersSelected,
       isShopeeRelesedOrdersSelected,
+      selectedShopeeBatch.id !== "all",
     ]);
-    if (compactStatus.length === 3 || compactStatus.length === 0) {
+    if (compactStatus.length === 4 || compactStatus.length === 0) {
       this.setState({
         filteredShopeeOrders: null,
       });
@@ -275,27 +427,45 @@ class OrdersPage extends React.Component<{}> {
       if (!_.isEmpty(shopeeOrders)) {
         const newFilteredOrders = _.filter(shopeeOrders, (order) => {
           let result = true;
+          const compactOrderStatus = _.compact([
+            isShopeeCancelledOrdersSelected,
+            isShopeeReturnedOrdersSelected,
+            isShopeeRelesedOrdersSelected,
+          ]);
           if (
-            !isShopeeCancelledOrdersSelected &&
-            order.status === WAYBILL_STATUS.cancelled.id
+            compactOrderStatus.length === 3 ||
+            compactOrderStatus.length === 0
           ) {
-            result = false;
+            result = true;
+          } else {
+            if (
+              !isShopeeCancelledOrdersSelected &&
+              order.status === WAYBILL_STATUS.cancelled.id
+            ) {
+              result = false;
+            }
+
+            if (
+              !isShopeeReturnedOrdersSelected &&
+              order.status === WAYBILL_STATUS.returned.id
+            ) {
+              result = false;
+            }
+
+            if (
+              !isShopeeRelesedOrdersSelected &&
+              order.status === WAYBILL_STATUS.forRelease.id
+            ) {
+              result = false;
+            }
           }
 
           if (
-            !isShopeeReturnedOrdersSelected &&
-            order.status === WAYBILL_STATUS.returned.id
+            selectedShopeeBatch.id !== "all" &&
+            selectedShopeeBatch.id !== order.createdDate.toDate().toString()
           ) {
             result = false;
           }
-
-          if (
-            !isShopeeRelesedOrdersSelected &&
-            order.status === WAYBILL_STATUS.forRelease.id
-          ) {
-            result = false;
-          }
-
           return result;
         });
 
@@ -347,11 +517,15 @@ class OrdersPage extends React.Component<{}> {
       selectedFromDate,
       selectedToDate,
       filteredLazadaOrders,
+      lazadaBatchOptions,
+      selectedLazadaBatch,
       isLazadaCancelledOrdersSelected,
       isLazadaReturnedOrdersSelected,
       isLazadaRelesedOrdersSelected,
       shopeeOrders,
       filteredShopeeOrders,
+      shopeeBatchOptions,
+      selectedShopeeBatch,
       isShopeeCancelledOrdersSelected,
       isShopeeReturnedOrdersSelected,
       isShopeeRelesedOrdersSelected,
@@ -417,9 +591,30 @@ class OrdersPage extends React.Component<{}> {
                 <IonCard>
                   <IonCardHeader className="order-table-card-header ion-no-padding ion-padding-start ion-padding-end ion-padding-top">
                     <IonLabel className="wc-h1">Lazada Orders</IonLabel>
-                    <IonButton onClick={this.downloadLazadaOrders}>
-                      <IonIcon icon={downloadOutline} />
-                    </IonButton>
+                    <div className="order-provider-options">
+                      <div className="batch-option-div">
+                        <ScannerDropdownSelect
+                          value={
+                            !_.isEmpty(selectedLazadaBatch)
+                              ? selectedLazadaBatch.name
+                              : ""
+                          }
+                          options={lazadaBatchOptions}
+                          onSelectItem={(selectedLazadaBatch) => {
+                            this.setState({
+                              selectedLazadaBatch,
+                            });
+                            setTimeout(() => {
+                              this.filterShopeeOrders();
+                            });
+                          }}
+                          selectFromOptionsRequired={true}
+                        />
+                      </div>
+                      <IonButton onClick={this.downloadLazadaOrders}>
+                        <IonIcon icon={downloadOutline} />
+                      </IonButton>
+                    </div>
                   </IonCardHeader>
                   <IonCardContent>
                     {!_.isNull(lazadaOrders) ? (
@@ -511,12 +706,12 @@ class OrdersPage extends React.Component<{}> {
                           ).map((order) => {
                             return (
                               <IonRow>
-                                <IonCol size="3.75">
+                                <IonCol className="order-col" size="3.75">
                                   <IonLabel className="wc-h4">
                                     {order.orderId}
                                   </IonLabel>
                                 </IonCol>
-                                <IonCol size="3.5">
+                                <IonCol className="order-col" size="3.5">
                                   <IonLabel className="wc-h4">
                                     {
                                       _.find(
@@ -526,17 +721,16 @@ class OrdersPage extends React.Component<{}> {
                                     }
                                   </IonLabel>
                                 </IonCol>
-                                <IonCol size="3.75">
+                                <IonCol className="order-col" size="3.75">
                                   <IonLabel className="wc-h4">
                                     {moment(order.createdDate.toDate()).format(
                                       "MM-DD-YYYY HH:MM:SS"
                                     )}
                                   </IonLabel>
                                 </IonCol>
-                                <IonCol size="1">
+                                <IonCol className="order-col" size="1">
                                   <IonButton
                                     fill="clear"
-                                    size="small"
                                     onClick={() => {
                                       this.deleteOrder(order.docId || "");
                                     }}
@@ -561,9 +755,30 @@ class OrdersPage extends React.Component<{}> {
                 <IonCard>
                   <IonCardHeader className="order-table-card-header ion-no-padding ion-padding-start ion-padding-end ion-padding-top">
                     <IonLabel className="wc-h1">Shopee Orders</IonLabel>
-                    <IonButton onClick={this.downloadShopeeOrders}>
-                      <IonIcon icon={downloadOutline} />
-                    </IonButton>
+                    <div className="order-provider-options">
+                      <div className="batch-option-div">
+                        <ScannerDropdownSelect
+                          value={
+                            !_.isEmpty(selectedShopeeBatch)
+                              ? selectedShopeeBatch.name
+                              : ""
+                          }
+                          options={shopeeBatchOptions}
+                          onSelectItem={(selectedShopeeBatch) => {
+                            this.setState({
+                              selectedShopeeBatch,
+                            });
+                            setTimeout(() => {
+                              this.filterShopeeOrders();
+                            });
+                          }}
+                          selectFromOptionsRequired={true}
+                        />
+                      </div>
+                      <IonButton onClick={this.downloadShopeeOrders}>
+                        <IonIcon icon={downloadOutline} />
+                      </IonButton>
+                    </div>
                   </IonCardHeader>
                   <IonCardContent>
                     {!_.isNull(shopeeOrders) ? (
@@ -655,12 +870,12 @@ class OrdersPage extends React.Component<{}> {
                           ).map((order) => {
                             return (
                               <IonRow>
-                                <IonCol size="3.75">
+                                <IonCol className="order-col" size="3.75">
                                   <IonLabel className="wc-h4">
                                     {order.orderId}
                                   </IonLabel>
                                 </IonCol>
-                                <IonCol size="3.5">
+                                <IonCol className="order-col" size="3.5">
                                   <IonLabel className="wc-h4">
                                     {
                                       _.find(
@@ -670,17 +885,16 @@ class OrdersPage extends React.Component<{}> {
                                     }
                                   </IonLabel>
                                 </IonCol>
-                                <IonCol size="3.75">
+                                <IonCol className="order-col" size="3.75">
                                   <IonLabel className="wc-h4">
                                     {moment(order.createdDate.toDate()).format(
                                       "MM-DD-YYYY HH:MM:SS"
                                     )}
                                   </IonLabel>
                                 </IonCol>
-                                <IonCol size="1">
+                                <IonCol className="order-col" size="1">
                                   <IonButton
                                     fill="clear"
-                                    size="small"
                                     onClick={() => {
                                       this.deleteOrder(order.docId || "");
                                     }}

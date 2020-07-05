@@ -85,12 +85,14 @@ export const Scanner = () => {
   const submitScannedData = async () => {
     setLoading(true);
     try {
+      const date = new Date();
       await Promise.all(
         scannedWaybill.map((orderId) => {
           return services.submitScannedWaybill(
             provider,
             orderId,
-            waybillStatus
+            waybillStatus,
+            date
           );
         })
       );

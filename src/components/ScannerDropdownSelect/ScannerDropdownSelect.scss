@@ -1,0 +1,85 @@
+.wc-dropdown-select-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  --inner-padding-end: 0;
+  width: inherit;
+  text-align: left;
+  .wc-dropdown-select-label {
+    margin-bottom: 10px !important;
+    &.has-focus {
+      color: var(--ion-color-primary) !important;
+    }
+    &.has-error {
+      color: var(--ion-color-danger) !important;
+    }
+  }
+  .wc-dropdow-select-input-list-container {
+    width: inherit;
+    display: flex;
+    flex-direction: column;
+    .wc-dropdown-select-input {
+      height: 37px;
+      width: inherit;
+      border: 1px solid var(--ion-color-medium);
+      margin-bottom: 4px;
+      --padding-start: 15px !important;
+      --padding-end: 25px;
+      text-overflow: ellipsis;
+      &.has-focus {
+        border: 1px solid var(--ion-color-primary) !important;
+      }
+      &.has-error {
+        border: 1px solid var(--ion-color-danger) !important;
+      }
+      .wc-dropdown-spinner {
+        right: 0;
+        position: absolute;
+      }
+      .wc-dropdown-select-icon {
+        position: absolute;
+        right: 0;
+        padding-right: 10px;
+        color: var(--ion-color-medium);
+      }
+    }
+    .wc-dropdown-select-list {
+      border: 1px solid var(--ion-color-medium);
+      display: flex;
+      flex-direction: column;
+      position: absolute;
+      margin-top: 37px;
+      height: auto;
+      z-index: 3;
+      width: inherit;
+      align-items: flex-start;
+      max-height: 100px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      &::-webkit-scrollbar {
+        display: none;
+      }
+      .wc-dropdown-select-list-container {
+        width: inherit;
+        height: 100%;
+        padding-top: 4px;
+        padding-bottom: 4px;
+        padding-left: 15px;
+      }
+      .wc-dropdown-select-list-container:hover {
+        background: var(--ion-color-tertiary);
+        cursor: pointer;
+        .wc-dropdown-select-list-label {
+          color: var(--ion-color-secondary) !important;
+        }
+      }
+    }
+  }
+}
+
+.wc-dropdown-select-error-label {
+  position: absolute;
+  &.has-error {
+    color: var(--ion-color-danger) !important;
+  }
+}

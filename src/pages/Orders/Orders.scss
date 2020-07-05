@@ -20,10 +20,23 @@
 }
 
 .order-grid {
+  .order-provider-options {
+    display: flex;
+    align-items: flex-end;
+    .batch-option-div {
+      width: 150px;
+      margin-right: 5px;
+    }
+  }
   .order-table-card-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
+  }
+
+  .order-col {
+    display: flex;
+    align-items: center;
   }
 
   .status-checkbox {
