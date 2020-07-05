@@ -230,6 +230,18 @@ class OrdersPage extends React.Component<{}> {
           Status: "",
           "Date Added": "",
         },
+        {},
+        {
+          "Order ID": "Released By: __________________",
+          Status: "",
+          "Date Added": "",
+        },
+        {},
+        {
+          "Order ID": "Checked By: __________________",
+          Status: "",
+          "Date Added": "",
+        },
       ];
 
       return finalJsonFileToDownload;
@@ -304,6 +316,18 @@ class OrdersPage extends React.Component<{}> {
           "Order ID": `Date and Time: ${moment(new Date()).format(
             "MM/DD/YYYY HH:MM:SS"
           )}`,
+          Status: "",
+          "Date Added": "",
+        },
+        {},
+        {
+          "Order ID": "Released By: __________________",
+          Status: "",
+          "Date Added": "",
+        },
+        {},
+        {
+          "Order ID": "Checked By: __________________",
           Status: "",
           "Date Added": "",
         },
