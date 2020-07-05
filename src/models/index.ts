@@ -12,6 +12,10 @@ export interface OrderPrintDetails {
   "Order ID": string;
   Status: string;
   "Date Added": string;
+  "": string;
+  "Order ID ": string;
+  "Status ": string;
+  "Date Added ": string;
 }
 
 export interface ClearDB {

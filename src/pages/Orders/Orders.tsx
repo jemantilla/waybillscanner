@@ -180,20 +180,36 @@ class OrdersPage extends React.Component<{}> {
   formatLazadaOrders = () => {
     const { filteredLazadaOrders, lazadaOrders } = this.state;
     if (!_.isEmpty(lazadaOrders)) {
-      const jsonFileToDownload = (!_.isNull(filteredLazadaOrders)
-        ? filteredLazadaOrders
-        : lazadaOrders!
+      const jsonFileToDownload = _.chunk(
+        !_.isNull(filteredLazadaOrders) ? filteredLazadaOrders : lazadaOrders!,
+        2
       ).map((order) => {
-        const row = {} as Partial<OrderPrintDetails>;
-        row["Order ID"] = order.orderId;
-        row.Status = _.find(
+        const col = {} as Partial<OrderPrintDetails>;
+        col["Order ID"] = order[0].orderId;
+        col.Status = _.find(
           Object.values(WAYBILL_STATUS),
-          (status) => status.id === order.status
+          (status) => status.id === order[0].status
         )!.name;
-        row["Date Added"] = moment(order.createdDate.toDate()).format(
+        col["Date Added"] = moment(order[0].createdDate.toDate()).format(
           "MM-DD-YYYY HH:MM:SS"
         );
-        return row as OrderPrintDetails;
+
+        col[""] = "";
+        if (order.length > 1) {
+          col["Order ID "] = order[1].orderId;
+          col["Status "] = _.find(
+            Object.values(WAYBILL_STATUS),
+            (status) => status.id === order[1].status
+          )!.name;
+          col["Date Added "] = moment(order[1].createdDate.toDate()).format(
+            "MM-DD-YYYY HH:MM:SS"
+          );
+        } else {
+          col["Order ID "] = "";
+          col["Status "] = "";
+          col["Date Added "] = "";
+        }
+        return col as OrderPrintDetails;
       });
       const finalJsonFileToDownload = [
         ...jsonFileToDownload,
@@ -203,24 +219,40 @@ class OrdersPage extends React.Component<{}> {
           "Order ID": "Courier: __________________",
           Status: "",
           "Date Added": "",
+          "": "",
+          "Order ID ": "",
+          "Status ": "",
+          "Date Added ": "",
         },
         {},
         {
           "Order ID": `Total No. of Parcel: ${jsonFileToDownload.length}`,
           Status: "",
           "Date Added": "",
+          "": "",
+          "Order ID ": "",
+          "Status ": "",
+          "Date Added ": "",
         },
         {},
         {
           "Order ID": "Recieved By: __________________",
           Status: "",
           "Date Added": "",
+          "": "",
+          "Order ID ": "",
+          "Status ": "",
+          "Date Added ": "",
         },
         {},
         {
           "Order ID": "Plate: __________________",
           Status: "",
           "Date Added": "",
+          "": "",
+          "Order ID ": "",
+          "Status ": "",
+          "Date Added ": "",
         },
         {},
         {
@@ -229,18 +261,30 @@ class OrdersPage extends React.Component<{}> {
           )}`,
           Status: "",
           "Date Added": "",
+          "": "",
+          "Order ID ": "",
+          "Status ": "",
+          "Date Added ": "",
         },
         {},
         {
           "Order ID": "Released By: __________________",
           Status: "",
           "Date Added": "",
+          "": "",
+          "Order ID ": "",
+          "Status ": "",
+          "Date Added ": "",
         },
         {},
         {
           "Order ID": "Checked By: __________________",
           Status: "",
           "Date Added": "",
+          "": "",
+          "Order ID ": "",
+          "Status ": "",
+          "Date Added ": "",
         },
       ];
 
@@ -269,20 +313,36 @@ class OrdersPage extends React.Component<{}> {
   formatShopeeOrders = () => {
     const { filteredShopeeOrders, shopeeOrders } = this.state;
     if (!_.isEmpty(shopeeOrders)) {
-      const jsonFileToDownload = (!_.isNull(filteredShopeeOrders)
-        ? filteredShopeeOrders
-        : shopeeOrders!
+      const jsonFileToDownload = _.chunk(
+        !_.isNull(filteredShopeeOrders) ? filteredShopeeOrders : shopeeOrders!,
+        2
       ).map((order) => {
-        const row = {} as Partial<OrderPrintDetails>;
-        row["Order ID"] = order.orderId;
-        row.Status = _.find(
+        const col = {} as Partial<OrderPrintDetails>;
+        col["Order ID"] = order[0].orderId;
+        col.Status = _.find(
           Object.values(WAYBILL_STATUS),
-          (status) => status.id === order.status
+          (status) => status.id === order[0].status
         )!.name;
-        row["Date Added"] = moment(order.createdDate.toDate()).format(
+        col["Date Added"] = moment(order[0].createdDate.toDate()).format(
           "MM-DD-YYYY HH:MM:SS"
         );
-        return row as OrderPrintDetails;
+        col[""] = "";
+        if (order.length > 1) {
+          col["Order ID "] = order[1].orderId;
+          col["Status "] = _.find(
+            Object.values(WAYBILL_STATUS),
+            (status) => status.id === order[1].status
+          )!.name;
+          col["Date Added "] = moment(order[1].createdDate.toDate()).format(
+            "MM-DD-YYYY HH:MM:SS"
+          );
+        } else {
+          col["Order ID "] = "";
+          col["Status "] = "";
+          col["Date Added "] = "";
+        }
+
+        return col as OrderPrintDetails;
       });
       const finalJsonFileToDownload = [
         ...jsonFileToDownload,
@@ -292,24 +352,40 @@ class OrdersPage extends React.Component<{}> {
           "Order ID": "Courier: __________________",
           Status: "",
           "Date Added": "",
+          "": "",
+          "Order ID ": "",
+          "Status ": "",
+          "Date Added ": "",
         },
         {},
         {
           "Order ID": `Total No. of Parcel: ${jsonFileToDownload.length}`,
           Status: "",
           "Date Added": "",
+          "": "",
+          "Order ID ": "",
+          "Status ": "",
+          "Date Added ": "",
         },
         {},
         {
           "Order ID": "Recieved By: __________________",
           Status: "",
           "Date Added": "",
+          "": "",
+          "Order ID ": "",
+          "Status ": "",
+          "Date Added ": "",
         },
         {},
         {
           "Order ID": "Plate: __________________",
           Status: "",
           "Date Added": "",
+          "": "",
+          "Order ID ": "",
+          "Status ": "",
+          "Date Added ": "",
         },
         {},
         {
@@ -318,18 +394,30 @@ class OrdersPage extends React.Component<{}> {
           )}`,
           Status: "",
           "Date Added": "",
+          "": "",
+          "Order ID ": "",
+          "Status ": "",
+          "Date Added ": "",
         },
         {},
         {
           "Order ID": "Released By: __________________",
           Status: "",
           "Date Added": "",
+          "": "",
+          "Order ID ": "",
+          "Status ": "",
+          "Date Added ": "",
         },
         {},
         {
           "Order ID": "Checked By: __________________",
           Status: "",
           "Date Added": "",
+          "": "",
+          "Order ID ": "",
+          "Status ": "",
+          "Date Added ": "",
         },
       ];
 
