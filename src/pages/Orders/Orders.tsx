@@ -180,10 +180,10 @@ class OrdersPage extends React.Component<{}> {
   formatLazadaOrders = () => {
     const { filteredLazadaOrders, lazadaOrders } = this.state;
     if (!_.isEmpty(lazadaOrders)) {
-      const jsonFileToDownload = _.chunk(
-        !_.isNull(filteredLazadaOrders) ? filteredLazadaOrders : lazadaOrders!,
-        2
-      ).map((order) => {
+      const orders = !_.isNull(filteredLazadaOrders)
+        ? filteredLazadaOrders
+        : lazadaOrders!;
+      const jsonFileToDownload = _.chunk(orders, 2).map((order) => {
         const col = {} as Partial<OrderPrintDetails>;
         col["Order ID"] = order[0].orderId;
         col.Status = _.find(
@@ -226,7 +226,7 @@ class OrdersPage extends React.Component<{}> {
         },
         {},
         {
-          "Order ID": `Total No. of Parcel: ${jsonFileToDownload.length}`,
+          "Order ID": `Total No. of Parcel: ${orders.length}`,
           Status: "",
           "Date Added": "",
           "": "",
@@ -313,10 +313,10 @@ class OrdersPage extends React.Component<{}> {
   formatShopeeOrders = () => {
     const { filteredShopeeOrders, shopeeOrders } = this.state;
     if (!_.isEmpty(shopeeOrders)) {
-      const jsonFileToDownload = _.chunk(
-        !_.isNull(filteredShopeeOrders) ? filteredShopeeOrders : shopeeOrders!,
-        2
-      ).map((order) => {
+      const orders = !_.isNull(filteredShopeeOrders)
+        ? filteredShopeeOrders
+        : shopeeOrders!;
+      const jsonFileToDownload = _.chunk(orders, 2).map((order) => {
         const col = {} as Partial<OrderPrintDetails>;
         col["Order ID"] = order[0].orderId;
         col.Status = _.find(
@@ -359,7 +359,7 @@ class OrdersPage extends React.Component<{}> {
         },
         {},
         {
-          "Order ID": `Total No. of Parcel: ${jsonFileToDownload.length}`,
+          "Order ID": `Total No. of Parcel: ${orders.length}`,
           Status: "",
           "Date Added": "",
           "": "",
