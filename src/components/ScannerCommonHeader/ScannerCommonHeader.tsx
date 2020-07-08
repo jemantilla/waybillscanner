@@ -10,6 +10,7 @@ import {
   IonLabel,
   IonToast,
   IonLoading,
+  IonTitle,
 } from "@ionic/react";
 
 import "./ScannerCommonHeader.scss";
@@ -49,6 +50,9 @@ export const ScannerCommonHeader: React.FunctionComponent<{
     <IonHeader>
       <IonToolbar color={SCOLORS.tertiary}>
         <IonItem color={SCOLORS.tertiary}>
+          <IonTitle className="wc-h1 white" slot="start">
+            BUILDMATE
+          </IonTitle>
           <div className="home-header-container">
             <div className="home-header-logo">
               <div className="ion-text-center version-container">

@@ -20,6 +20,7 @@ import {
   IonItem,
   IonRadio,
   IonLoading,
+  IonIcon,
 } from "@ionic/react";
 
 import * as services from "../../services";
@@ -28,10 +29,9 @@ import { PROVIDER, WAYBILL_STATUS } from "../../constants/config";
 import { ScannerCommonHeader } from "../../components/ScannerCommonHeader/ScannerCommonHeader";
 import { MSGS_COMMON } from "../../constants/messages";
 import { useEffectOnlyOnce } from "../../functions/common";
-import { Orders } from "../../models";
+import { trashBinOutline } from "ionicons/icons";
 
 export const Scanner = () => {
-  const [existingOrders, setExistingOrders] = useState([] as Orders[]);
   const [provider, setProvider] = useState(1 as Provider);
   const [waybillStatus, setWayBillStatus] = useState(1 as WaybillStatus);
   const [scannedWaybill, setScannedWaybill] = useState([] as string[]);
@@ -39,47 +39,50 @@ export const Scanner = () => {
 
   const scannedInputRef: React.RefObject<HTMLIonInputElement> = useRef(null);
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const onScan = (scannedItem: string) => {
-    const clonedScannedWayBill = _.cloneDeep(scannedWaybill);
-    const existingOrder = _.find(existingOrders, (order) => {
-      return order.orderId === scannedItem && provider === order.provider;
-    });
-    if (_.isEmpty(scannedItem)) {
-      setError("NO WAYBILL FOUND");
-    } else if (
-      clonedScannedWayBill.indexOf(scannedItem) !== -1 ||
-      (!_.isEmpty(existingOrder) &&
-        existingOrder!.status !== WAYBILL_STATUS.cancelled.id &&
-        waybillStatus === WAYBILL_STATUS.forRelease.id)
-    ) {
-      setError("Duplicate waybill detected.");
-    } else if (
-      !_.isEmpty(existingOrder) &&
-      existingOrder!.status === WAYBILL_STATUS.cancelled.id
-    ) {
-      setError("This order is cancelled.");
-    } else {
-      clonedScannedWayBill.push(scannedItem);
-      setScannedWaybill(clonedScannedWayBill);
-      setSuccess("Waybill Scanned");
-    }
+  const onScan = async (scannedItem: string) => {
+    setLoading(true);
+    try {
+      const clonedScannedWayBill = _.cloneDeep(scannedWaybill);
+      const existingOrder = await services.getOrder(scannedItem, provider);
 
-    setCurrentReading("");
-  };
-  useEffectOnlyOnce(() => {
-    getLatestWaybills();
-  });
-
-  const getLatestWaybills = () => {
-    services.getLatestWaybills((orders) => {
-      console.log("got latest waybills", orders);
-      setExistingOrders(orders);
       setLoading(false);
-    });
+      if (_.isEmpty(scannedItem)) {
+        setError("NO WAYBILL FOUND");
+      } else if (
+        clonedScannedWayBill.indexOf(scannedItem) !== -1 ||
+        (!_.isEmpty(existingOrder) &&
+          existingOrder!.status !== WAYBILL_STATUS.cancelled.id &&
+          waybillStatus === WAYBILL_STATUS.forRelease.id)
+      ) {
+        setError("Duplicate waybill detected.");
+      } else if (
+        !_.isEmpty(existingOrder) &&
+        existingOrder!.status === WAYBILL_STATUS.cancelled.id
+      ) {
+        setError("This order is cancelled.");
+      } else {
+        clonedScannedWayBill.push(scannedItem);
+        setScannedWaybill(clonedScannedWayBill);
+        setSuccess("Waybill Scanned");
+      }
+
+      setCurrentReading("");
+    } catch (e) {
+      setLoading(false);
+      setError(e);
+      setCurrentReading("");
+    }
+  };
+
+  const deleteScannedId = (orderId: string) => {
+    const clonedScannedWayBill = _.cloneDeep(scannedWaybill);
+    _.remove(clonedScannedWayBill, (scannedItem) => scannedItem === orderId);
+
+    setScannedWaybill(clonedScannedWayBill);
   };
 
   const submitScannedData = async () => {
@@ -88,12 +91,30 @@ export const Scanner = () => {
       const date = new Date();
       await Promise.all(
         scannedWaybill.map((orderId) => {
-          return services.submitScannedWaybill(
-            provider,
-            orderId,
-            waybillStatus,
-            date
-          );
+          return new Promise(async (resolve) => {
+            const existingOrder = await services.getOrder(orderId, provider);
+            if (
+              !_.isEmpty(existingOrder) &&
+              existingOrder!.status !== WAYBILL_STATUS.cancelled.id &&
+              waybillStatus === WAYBILL_STATUS.forRelease.id
+            ) {
+              resolve();
+            } else if (
+              !_.isEmpty(existingOrder) &&
+              existingOrder!.status === WAYBILL_STATUS.cancelled.id
+            ) {
+              resolve();
+            } else {
+              await services.submitScannedWaybill(
+                provider,
+                orderId,
+                waybillStatus,
+                date
+              );
+
+              resolve();
+            }
+          });
         })
       );
       setSuccess("Scanned waybills saved.");
@@ -211,9 +232,19 @@ export const Scanner = () => {
                 {!_.isEmpty(scannedWaybill) ? (
                   scannedWaybill.map((scannedData, index) => {
                     return (
-                      <IonLabel className="ws-h5" key={scannedData}>
-                        <b>{index + 1}</b>. {scannedData}
-                      </IonLabel>
+                      <div className="scanned-item">
+                        <IonLabel className="ws-h5" key={scannedData}>
+                          <b>{index + 1}</b>. {scannedData}
+                        </IonLabel>
+                        <IonButton
+                          fill="clear"
+                          onClick={() => {
+                            deleteScannedId(scannedData);
+                          }}
+                        >
+                          <IonIcon icon={trashBinOutline} />
+                        </IonButton>
+                      </div>
                     );
                   })
                 ) : (

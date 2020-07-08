@@ -138,3 +138,18 @@ export const clearOrders = async () => {
     });
   }
 };
+
+export const getOrder = async (orderId: string, provider: Provider) => {
+  const result = await firestore
+    .collection(ORDERS)
+    .where("orderId", "==", orderId)
+    .where("provider", "==", provider)
+    .get();
+
+  if (!result.empty) {
+    const data = result.docs[0];
+    return { ...data.data(), docId: data.id } as Orders;
+  } else {
+    return {} as Orders;
+  }
+};

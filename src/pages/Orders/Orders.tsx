@@ -38,6 +38,10 @@ import {
   ScannerDropdownSelectOption,
 } from "../../components/ScannerDropdownSelect/ScannerDropdownSelect";
 
+interface OrderWithBatchNo extends Orders {
+  batchNo: number;
+}
+
 class OrdersPage extends React.Component<{}> {
   state = {
     calendarFromAnchor: null as Event | undefined | null,
@@ -46,18 +50,18 @@ class OrdersPage extends React.Component<{}> {
     selectedToDate: new Date(),
     isLoading: false,
 
-    lazadaOrders: null as Orders[] | null,
+    lazadaOrders: null as OrderWithBatchNo[] | null,
     lazadaBatchOptions: [] as ScannerDropdownSelectOption[],
     selectedLazadaBatch: {} as ScannerDropdownSelectOption,
-    filteredLazadaOrders: null as Orders[] | null,
+    filteredLazadaOrders: null as OrderWithBatchNo[] | null,
     isLazadaCancelledOrdersSelected: false,
     isLazadaReturnedOrdersSelected: false,
     isLazadaRelesedOrdersSelected: false,
 
-    shopeeOrders: null as Orders[] | null,
+    shopeeOrders: null as OrderWithBatchNo[] | null,
     shopeeBatchOptions: [] as ScannerDropdownSelectOption[],
     selectedShopeeBatch: {} as ScannerDropdownSelectOption,
-    filteredShopeeOrders: null as Orders[] | null,
+    filteredShopeeOrders: null as OrderWithBatchNo[] | null,
     isShopeeCancelledOrdersSelected: false,
     isShopeeReturnedOrdersSelected: false,
     isShopeeRelesedOrdersSelected: false,
@@ -117,20 +121,35 @@ class OrdersPage extends React.Component<{}> {
       selectedToDate,
       PROVIDER.lazada.id,
       (orders) => {
-        const batchOptions = Object.keys(
-          _.groupBy(orders, (order) => order.createdDate.toDate())
-        ).map((batch, index) => {
-          return {
-            id: batch,
-            name: "Batch " + (index + 1).toString(),
-          };
-        }) as ScannerDropdownSelectOption[];
+        const groupedByBatch = _.groupBy(orders, (order) =>
+          order.createdDate.toDate()
+        );
+        const batchOptions = Object.values(groupedByBatch).map(
+          (batch, index) => {
+            return {
+              id: (index + 1).toString(),
+              name: "Batch " + (index + 1).toString(),
+            };
+          }
+        ) as ScannerDropdownSelectOption[];
         const finalBatch = [
           ...[{ id: "all", name: "All Batch" }],
           ...batchOptions,
         ];
+
+        const ordersWithBatch = Object.values(groupedByBatch).map(
+          (batch, index) => {
+            return batch.map((order) => {
+              return {
+                batchNo: index + 1,
+                ...order,
+              } as OrderWithBatchNo;
+            });
+          }
+        );
+
         this.setState({
-          lazadaOrders: orders,
+          lazadaOrders: _.flatten(ordersWithBatch),
           lazadaBatchOptions: finalBatch,
           selectedLazadaBatch: finalBatch[0],
         });
@@ -152,24 +171,38 @@ class OrdersPage extends React.Component<{}> {
       selectedToDate,
       PROVIDER.shopee.id,
       (orders) => {
-        const batchOptions = Object.keys(
-          _.groupBy(orders, (order) => order.createdDate.toDate())
-        ).map((batch, index) => {
-          return {
-            id: batch,
-            name: "Batch " + (index + 1).toString(),
-          };
-        }) as ScannerDropdownSelectOption[];
+        const groupedByBatch = _.groupBy(orders, (order) =>
+          order.createdDate.toDate()
+        );
+        const batchOptions = Object.values(groupedByBatch).map(
+          (batch, index) => {
+            return {
+              id: (index + 1).toString(),
+              name: "Batch " + (index + 1).toString(),
+            };
+          }
+        ) as ScannerDropdownSelectOption[];
         const finalBatch = [
           ...[{ id: "all", name: "All Batch" }],
           ...batchOptions,
         ];
+
+        const ordersWithBatch = Object.values(groupedByBatch).map(
+          (batch, index) => {
+            return batch.map((order) => {
+              return {
+                batchNo: index + 1,
+                ...order,
+              } as OrderWithBatchNo;
+            });
+          }
+        );
+
         this.setState({
-          shopeeOrders: orders,
+          shopeeOrders: _.flatten(ordersWithBatch),
           shopeeBatchOptions: finalBatch,
           selectedShopeeBatch: finalBatch[0],
         });
-
         if (!_.isNull(filteredShopeeOrders)) {
           this.filterShopeeOrders();
         }
@@ -501,7 +534,7 @@ class OrdersPage extends React.Component<{}> {
 
           if (
             selectedLazadaBatch.id !== "all" &&
-            selectedLazadaBatch.id !== order.createdDate.toDate().toString()
+            selectedLazadaBatch.id !== order.batchNo.toString()
           ) {
             result = false;
           }
@@ -574,7 +607,7 @@ class OrdersPage extends React.Component<{}> {
 
           if (
             selectedShopeeBatch.id !== "all" &&
-            selectedShopeeBatch.id !== order.createdDate.toDate().toString()
+            selectedShopeeBatch.id !== order.batchNo.toString()
           ) {
             result = false;
           }
@@ -717,7 +750,7 @@ class OrdersPage extends React.Component<{}> {
                               selectedLazadaBatch,
                             });
                             setTimeout(() => {
-                              this.filterShopeeOrders();
+                              this.filterLazadaOrders();
                             });
                           }}
                           selectFromOptionsRequired={true}
@@ -792,19 +825,24 @@ class OrdersPage extends React.Component<{}> {
                             </IonCol>
                           </IonRow>
                           <IonRow>
-                            <IonCol className="order-table-header" size="3.75">
+                            <IonCol className="order-table-header" size="3.33">
                               <IonLabel className="wc-h3 bold white">
                                 Order ID
                               </IonLabel>
                             </IonCol>
-                            <IonCol className="order-table-header" size="3.5">
+                            <IonCol className="order-table-header" size="3.33">
                               <IonLabel className="wc-h3 bold white">
                                 Status
                               </IonLabel>
                             </IonCol>
-                            <IonCol className="order-table-header" size="3.75">
+                            <IonCol className="order-table-header" size="3.33">
                               <IonLabel className="wc-h3 bold white">
                                 Date Added
+                              </IonLabel>
+                            </IonCol>
+                            <IonCol className="order-table-header" size="1">
+                              <IonLabel className="wc-h3 bold white">
+                                Batch
                               </IonLabel>
                             </IonCol>
                             <IonCol
@@ -818,12 +856,12 @@ class OrdersPage extends React.Component<{}> {
                           ).map((order) => {
                             return (
                               <IonRow>
-                                <IonCol className="order-col" size="3.75">
+                                <IonCol className="order-col" size="3.33">
                                   <IonLabel className="wc-h4">
                                     {order.orderId}
                                   </IonLabel>
                                 </IonCol>
-                                <IonCol className="order-col" size="3.5">
+                                <IonCol className="order-col" size="3.33">
                                   <IonLabel className="wc-h4">
                                     {
                                       _.find(
@@ -833,11 +871,16 @@ class OrdersPage extends React.Component<{}> {
                                     }
                                   </IonLabel>
                                 </IonCol>
-                                <IonCol className="order-col" size="3.75">
+                                <IonCol className="order-col" size="3.33">
                                   <IonLabel className="wc-h4">
                                     {moment(order.createdDate.toDate()).format(
                                       "MM-DD-YYYY HH:MM:SS"
                                     )}
+                                  </IonLabel>
+                                </IonCol>
+                                <IonCol className="order-col" size="1">
+                                  <IonLabel className="wc-h4">
+                                    {order.batchNo}
                                   </IonLabel>
                                 </IonCol>
                                 <IonCol className="order-col" size="1">
@@ -956,19 +999,24 @@ class OrdersPage extends React.Component<{}> {
                             </IonCol>
                           </IonRow>
                           <IonRow>
-                            <IonCol className="order-table-header" size="3.75">
+                            <IonCol className="order-table-header" size="3.33">
                               <IonLabel className="wc-h3 bold white">
                                 Order ID
                               </IonLabel>
                             </IonCol>
-                            <IonCol className="order-table-header" size="3.5">
+                            <IonCol className="order-table-header" size="3.33">
                               <IonLabel className="wc-h3 bold white">
                                 Status
                               </IonLabel>
                             </IonCol>
-                            <IonCol className="order-table-header" size="3.75">
+                            <IonCol className="order-table-header" size="3.33">
                               <IonLabel className="wc-h3 bold white">
                                 Date Added
+                              </IonLabel>
+                            </IonCol>
+                            <IonCol className="order-table-header" size="1">
+                              <IonLabel className="wc-h3 bold white">
+                                Batch
                               </IonLabel>
                             </IonCol>
                             <IonCol
@@ -982,12 +1030,12 @@ class OrdersPage extends React.Component<{}> {
                           ).map((order) => {
                             return (
                               <IonRow>
-                                <IonCol className="order-col" size="3.75">
+                                <IonCol className="order-col" size="3.33">
                                   <IonLabel className="wc-h4">
                                     {order.orderId}
                                   </IonLabel>
                                 </IonCol>
-                                <IonCol className="order-col" size="3.5">
+                                <IonCol className="order-col" size="3.33">
                                   <IonLabel className="wc-h4">
                                     {
                                       _.find(
@@ -997,11 +1045,16 @@ class OrdersPage extends React.Component<{}> {
                                     }
                                   </IonLabel>
                                 </IonCol>
-                                <IonCol className="order-col" size="3.75">
+                                <IonCol className="order-col" size="3.33">
                                   <IonLabel className="wc-h4">
                                     {moment(order.createdDate.toDate()).format(
                                       "MM-DD-YYYY HH:MM:SS"
                                     )}
+                                  </IonLabel>
+                                </IonCol>
+                                <IonCol className="order-col" size="1">
+                                  <IonLabel className="wc-h4">
+                                    {order.batchNo}
                                   </IonLabel>
                                 </IonCol>
                                 <IonCol className="order-col" size="1">
