@@ -42,6 +42,14 @@
   &.light-weight {
     font-weight: $wsH1LightFontWeight !important;
   }
+
+  &.danger {
+    color: var(--ion-color-danger) !important;
+  }
+
+  &.bold {
+    font-weight: $wsH1FontWeightBold !important;
+  }
 }
 
 .wc-h2 {

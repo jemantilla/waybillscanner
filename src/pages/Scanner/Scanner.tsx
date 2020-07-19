@@ -21,6 +21,8 @@ import {
   IonRadio,
   IonLoading,
   IonIcon,
+  IonModal,
+  IonHeader,
 } from "@ionic/react";
 
 import * as services from "../../services";
@@ -268,13 +270,43 @@ export const Scanner = () => {
         </div>
       </IonContent>
 
-      <IonToast
+      {/* <IonToast
         isOpen={!_.isEmpty(error)}
         message={error}
         duration={2000}
         onDidDismiss={() => setError("")}
         color="danger"
-      />
+      /> */}
+
+      <IonModal
+        isOpen={!_.isEmpty(error)}
+        onDidDismiss={() => {
+          setError("");
+        }}
+        cssClass="error-modal"
+        backdropDismiss={false}
+      >
+        <IonCard className="error-card">
+          <IonCardHeader>
+            <IonTitle className="wc-h1 danger">ATTENTION</IonTitle>
+          </IonCardHeader>
+          <IonCardContent className="ion-text-center">
+            <IonLabel className="wc-h1">{error}</IonLabel>
+            <IonButton
+              size="large"
+              expand="full"
+              shape="round"
+              fill="outline"
+              className="ion-margin-top"
+              onClick={() => {
+                setError("");
+              }}
+            >
+              Okay
+            </IonButton>
+          </IonCardContent>
+        </IonCard>
+      </IonModal>
 
       <IonToast
         isOpen={!_.isEmpty(success)}
