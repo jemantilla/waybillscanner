@@ -134,7 +134,7 @@ class OrdersPage extends React.Component<{}> {
         ) as ScannerDropdownSelectOption[];
         const finalBatch = [
           ...[{ id: "all", name: "All Batch" }],
-          ...batchOptions,
+          ..._.sortBy(batchOptions, (batchItem) => +batchItem.id),
         ];
 
         const ordersWithBatch = Object.values(groupedByBatch).map(
@@ -149,7 +149,11 @@ class OrdersPage extends React.Component<{}> {
         );
 
         this.setState({
-          lazadaOrders: _.flatten(ordersWithBatch),
+          lazadaOrders: _.orderBy(
+            _.flatten(ordersWithBatch),
+            "batchNo",
+            "desc"
+          ),
           lazadaBatchOptions: finalBatch,
           selectedLazadaBatch: finalBatch[0],
         });
@@ -184,7 +188,7 @@ class OrdersPage extends React.Component<{}> {
         ) as ScannerDropdownSelectOption[];
         const finalBatch = [
           ...[{ id: "all", name: "All Batch" }],
-          ...batchOptions,
+          ..._.sortBy(batchOptions, (batchItem) => +batchItem.id),
         ];
 
         const ordersWithBatch = Object.values(groupedByBatch).map(
@@ -199,7 +203,11 @@ class OrdersPage extends React.Component<{}> {
         );
 
         this.setState({
-          shopeeOrders: _.flatten(ordersWithBatch),
+          shopeeOrders: _.orderBy(
+            _.flatten(ordersWithBatch),
+            "batchNo",
+            "desc"
+          ),
           shopeeBatchOptions: finalBatch,
           selectedShopeeBatch: finalBatch[0],
         });

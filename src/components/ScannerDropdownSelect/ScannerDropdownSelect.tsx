@@ -57,7 +57,8 @@ export const ScannerDropdownSelect = (props: ScannerDropdownSelectProps) => {
         .join("");
 
       if (newOptionsIdentifier !== oldOptionsIdentifier) {
-        setRawOptions(_.sortBy(options, "name", "desc"));
+        // setRawOptions(_.sortBy(options, "name", "desc"));
+        setRawOptions(options);
         if (_.isEmpty(value)) {
           setListOptions(null);
         }
