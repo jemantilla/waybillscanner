@@ -67,8 +67,8 @@ export const Scanner = () => {
       ) {
         setError("This order is cancelled.");
       } else {
-        clonedScannedWayBill.push(scannedItem);
-        setScannedWaybill(clonedScannedWayBill);
+        // clonedScannedWayBill.push(scannedItem);
+        setScannedWaybill([...[scannedItem], ...clonedScannedWayBill]);
         setSuccess("Waybill Scanned");
       }
 
@@ -236,7 +236,7 @@ export const Scanner = () => {
                     return (
                       <div className="scanned-item">
                         <IonLabel className="ws-h5" key={scannedData}>
-                          <b>{index + 1}</b>. {scannedData}
+                          <b>{scannedWaybill.length - index}</b>. {scannedData}
                         </IonLabel>
                         <IonButton
                           fill="clear"
